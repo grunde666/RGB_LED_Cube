@@ -1,9 +1,8 @@
-#include <avr/io.h>
-
-#include "irq.h"
 #include "rc5.h"
+#include <avr/io.h>
+#include <avr/interrupt.h>
 
-#define RC5_SENSE_PIN   PB0
+#define RC5_SENSE_PIN   PB4
 #define RC5_SENSE_IREG  PINB
 #define RC5_SENSE_OREG  PORTB
 #define RC5_SENSE_DREG  DDRB
@@ -31,7 +30,7 @@ static volatile uint16_t rc5_buffer;
 #define RC5_BIT_S2  0x1000
 #define RC5_BIT_TG  0x0800
 
-struct rc5_bitfield 
+struct rc5_bitfield
 {
 	uint16_t command : 6;
 	uint16_t address : 5;
@@ -46,10 +45,10 @@ bool rc5_recv(struct rc5_data *buf)
 	uint8_t sreg;
 	bool result = false;
 
-	irq_lock(&sreg);
-
+    sreg = SREG;
+    cli();
 	const struct rc5_bitfield *data = (struct rc5_bitfield*) &rc5_buffer;
-	if (data->start1) 
+	if (data->start1)
 	{
 		buf->toggle = data->toggle;
 		buf->address = data->address;
@@ -57,8 +56,7 @@ bool rc5_recv(struct rc5_data *buf)
 		rc5_buffer = 0;
 		result = true;
 	}
-
-	irq_unlock(sreg);
+    SREG = sreg;
 
 	return result;
 }
@@ -93,11 +91,11 @@ void rc5_sample(void)
 	static bool old_state;
 	const bool state = (RC5_SENSE_IREG & (1 << RC5_SENSE_PIN));
 
-	if (state != old_state) 
+	if (state != old_state)
 	{
 		old_state = state;
 
-		if (rc5_buffer == 0) 
+		if (rc5_buffer == 0)
 		{
 			rc5_buffer = 1;
 			ticks = 0;
@@ -107,16 +105,16 @@ void rc5_sample(void)
 			ticks = 0;
 	}
 
-	if (ticks == RC5_TIME_SAMPLE) 
+	if (ticks == RC5_TIME_SAMPLE)
 	{
-		if ((rc5_buffer & RC5_BIT_S1) == 0) 
+		if ((rc5_buffer & RC5_BIT_S1) == 0)
 		{
 			rc5_buffer <<= 1;
 			rc5_buffer |= state;
 		}
 	}
 
-	if ((ticks > RC5_TIME_MAX) && ((rc5_buffer & RC5_BIT_S1) == 0)) 
+	if ((ticks > RC5_TIME_MAX) && ((rc5_buffer & RC5_BIT_S1) == 0))
 	{
 		rc5_buffer = 0;
 	}

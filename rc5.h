@@ -1,5 +1,5 @@
-#ifndef RC5_H
-#define RC5_H
+#ifndef RC5_H_INCLUDED
+#define RC5_H_INCLUDED
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -22,4 +22,4 @@ void rc5_sample(void);
 /* Initialization of RC5 module */
 void rc5_init(void);
 
-#endif
+#endif // RC5_H_INCLUDED

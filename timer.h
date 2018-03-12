@@ -1,9 +1,8 @@
-#ifndef TIMER_H
-#define TIMER_H
+#ifndef TIMER_H_INCLUDED
+#define TIMER_H_INCLUDED
 
-/* Dispatcher function to be called from main context */
-void timer_dispatch(void);
-/* Initialization of timer module */
-void timer_init(void);
+extern volatile uint8_t rc5_trigger;
 
-#endif
+void Timer2_Init(void);
+
+#endif // TIMER_H_INCLUDED
