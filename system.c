@@ -2,7 +2,6 @@
  * Includes system specific functions like pin assignment
  */
  #include "system.h"
- #include <avr/io.h>
 
 void intToASCII(uint8_t src, char* dest)
 {

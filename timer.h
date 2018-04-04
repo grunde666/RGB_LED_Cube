@@ -2,6 +2,7 @@
 #define TIMER_H_INCLUDED
 
 extern volatile uint8_t rc5_trigger;
+extern volatile uint8_t msCount;
 
 void Timer2_Init(void);
 
