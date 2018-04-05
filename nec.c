@@ -25,7 +25,7 @@ uint32_t NEC_CheckInput(void)
     //Falling edge detection
     if(!(NEC_SENSE_IREG & (1 << NEC_SENSE_PIN)) && pinState == 1)
     {
-        pinState = 1;
+        pinState = 0;
         timerValue = msCount;
         msCount = 0;
 

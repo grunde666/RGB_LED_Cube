@@ -13,7 +13,7 @@
 int main()
 {
 //    struct rc5_data rc5_buf;
-    unsigned int keyCode;
+    unsigned int keyCode = 0;
 #ifdef DEBUG
     char debug_str[12];
     USART_Init();
