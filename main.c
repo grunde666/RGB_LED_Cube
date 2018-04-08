@@ -5,7 +5,6 @@
 #include "uart.h"
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include <util/delay.h>
 #include <stdio.h>
 
 #define DEBUG
@@ -13,7 +12,9 @@
 int main()
 {
 //    struct rc5_data rc5_buf;
-    unsigned int keyCode = 0;
+    uint32_t keyCode = 0;
+    unsigned int keyCode_low = 0;
+    unsigned int keyCode_high = 0;
 #ifdef DEBUG
     char debug_str[12];
     USART_Init();
@@ -29,8 +30,12 @@ int main()
 
         if(keyCode != 0)
         {
-            sprintf(debug_str, "%x", keyCode);
-            USART_puts("0x");
+            keyCode_low = keyCode & 0xFFFF;
+            keyCode_high = keyCode >> 16;
+            sprintf(debug_str, "%x", keyCode_high);
+            USART_puts(" 0x");
+            USART_puts(debug_str);
+            sprintf(debug_str, "%x", keyCode_low);
             USART_puts(debug_str);
             USART_putc('\n');
         }
