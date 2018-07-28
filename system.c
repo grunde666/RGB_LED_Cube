@@ -17,3 +17,9 @@ void intToASCII(uint8_t src, char* dest)
     src -= h_src * 10;
     dest[2] = src + 48;
 }
+
+void InitLayerPins(void)
+{
+    DDRC |= (1 << LAYER_1_PIN) | (1 << LAYER_2_PIN) | (1 << LAYER_3_PIN) | (1 << LAYER_4_PIN);
+    PORTC &= ~((1 << LAYER_1_PIN) | (1 << LAYER_2_PIN) | (1 << LAYER_3_PIN) | (1 << LAYER_4_PIN));
+}
