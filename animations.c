@@ -10,7 +10,7 @@
  #include <avr/interrupt.h>
  #include <stdlib.h>
 
-static volatile uint8_t tlc_data_ready = 0;
+volatile uint8_t frameReady = 0;
 
 enum color_type
 {
@@ -24,7 +24,11 @@ enum color_type
 };
 
 //struct rgbLed ledValue_Array[4][4][4];
-uint8_t ledValue_Array[4][4][4];
+uint8_t ledValue_Array1[4][4][4];
+uint8_t ledValue_Array2[4][4][4];
+
+uint8_t *currentFrame = &ledValue_Array1[0][0][0];
+uint8_t *nextFrame = &ledValue_Array2[0][0][0];
 
 struct rgbLed color_new;
 
@@ -50,58 +54,10 @@ const uint16_t pwmtable_10[64] =
     279, 311, 346, 386, 430, 479, 534, 595, 663, 739, 824, 918, 1023
 };
 
-static void waitForFrame(uint16_t maxNumber)
-{
-    uint8_t i = 0;
-    uint16_t frameCnt = 0;
-    static uint8_t layer = 0;
-    frameCnt = maxNumber;
-
-    while(frameCnt)
-    {
-        //new data ready for tlc
-        if(tlc_data_ready)
-        {
-            PORTC = 0;
-            //Update data for all columns
-            for(i = 0; i < 16; i++)
-            {
-                Tlc5940_set(ledChannel_Array[i].r,(ledValue_Array[i%4][i/4][layer] * color_new.r)); // color[RGB_COLOR_RED].r
-                Tlc5940_set(ledChannel_Array[i].g,(ledValue_Array[i%4][i/4][layer] * color_new.g)); // color[RGB_COLOR_RED].g
-                Tlc5940_set(ledChannel_Array[i].b,(ledValue_Array[i%4][i/4][layer] * color_new.b)); // color[RGB_COLOR_RED].b
-            }
-            //wait until data is shifted in tlc
-            while(Tlc5940_update());
-
-            //Update layer
-            if(layer == 0)
-            {
-                PORTC |= (1 << LAYER_1_PIN);
-            }
-            else if(layer == 1)
-            {
-                PORTC |= (1 << LAYER_2_PIN);
-            }
-            else if(layer == 2)
-            {
-                PORTC |= (1 << LAYER_3_PIN);
-            }
-            else if(layer == 3)
-            {
-                PORTC |= (1 << LAYER_4_PIN);
-            }
-
-            layer++;
-
-            if(layer >= 4)
-            {
-                layer = 0;
-
-                frameCnt--;
-            }
-            tlc_data_ready = 0;
-        }
-    }
+static void waitForNextFrame(void) {
+	frameReady = 1;
+	while(frameReady){
+	}
 }
 
 void everyLED(void)
@@ -112,8 +68,8 @@ void everyLED(void)
         {
             for(uint8_t x = 0; x < 4; x++)
             {
-                ledValue_Array[x][y][z] = 1;
-                waitForFrame(5);
+                *(nextFrame+x+y*4+z*16) = 1;
+                waitForNextFrame();
             }
         }
     }
@@ -155,7 +111,7 @@ void blinkingCube(uint8_t replays)
                     color_new.b = pwmtable_10[63-i];
                     break;
             }
-            waitForFrame(5);
+            waitForNextFrame();
         }
         k++;
     }
@@ -167,13 +123,13 @@ void blinkingCube(uint8_t replays)
 //            for(i = 0; i < 64; i++)
 //            {
 //                fillLEDCube(color[k], pwmtable_10[i]);
-//                waitForFrame(4);
+//                waitForNextFrame();
 //            }
 //
 //            for(i = 63; i > 0; i--)
 //            {
 //                fillLEDCube(color[k], pwmtable_10[i]);
-//                waitForFrame(4);
+//                waitForNextFrame();
 //            }
 //        }
 //    }
@@ -183,34 +139,34 @@ void fillCubeDiagonal(uint8_t replays)
 {
     for(;replays > 0; replays--)
     {
-        ledValue_Array[0][0][0] = 1;
-        waitForFrame(40);
+        *(nextFrame+0+0*4+0*16) = 1;
+        waitForNextFrame();
 
         moveLayerUp(0);
-        ledValue_Array[0][1][0] = 1;
-        ledValue_Array[1][0][0] = 1;
-        waitForFrame(40);
+        *(nextFrame+0+1*4+0*16) = 1;
+        *(nextFrame+1+0*4+0*16) = 1;
+        waitForNextFrame();
 
         moveLayerUp(0);
-        ledValue_Array[1][1][0] = 1;
-        ledValue_Array[0][2][0] = 1;
-        ledValue_Array[2][0][0] = 1;
-        waitForFrame(40);
+        *(nextFrame+1+1*4+0*16) = 1;
+        *(nextFrame+0+2*4+0*16) = 1;
+        *(nextFrame+2+0*4+0*16) = 1;
+        waitForNextFrame();
 
         moveLayerUp(0);
-        ledValue_Array[2][1][0] = 1;
-        ledValue_Array[1][2][0] = 1;
-        waitForFrame(40);
+        *(nextFrame+2+1*4+0*16) = 1;
+        *(nextFrame+1+2*4+0*16) = 1;
+        waitForNextFrame();
 
         moveLayerUp(0);
-        ledValue_Array[2][2][0] = 1;
-        waitForFrame(40);
+        *(nextFrame+2+2*4+0*16) = 1;
+        waitForNextFrame();
 
         moveLayerUp(0);
-        waitForFrame(40);
+        waitForNextFrame();
 
         moveLayerUp(0);
-        waitForFrame(40);
+        waitForNextFrame();
 
         clearLEDCube();
     }
@@ -220,20 +176,20 @@ void floatingZLayer(uint8_t replay)
 {
     uint8_t i;
     fillLayer(Z_LAYER,BOTTOM);
-    waitForFrame(5);
+    waitForNextFrame();
 
     for(;replay > 0; replay--)
     {
         for(i = 0; i < 3; i++)
         {
             moveLayerUp(1);
-            waitForFrame(5);
+            waitForNextFrame();
         }
 
         for(i = 0; i < 3; i++)
         {
             moveLayerDown(1);
-            waitForFrame(5);
+            waitForNextFrame();
         }
     }
 
@@ -244,20 +200,20 @@ void floatingYLayer(uint8_t replay)
 {
     uint8_t i;
     fillLayer(Y_LAYER,BACK);
-    waitForFrame(5);
+    waitForNextFrame();
 
     for(;replay > 0; replay--)
     {
         for(i = 0; i < 3; i++)
         {
             moveLayerForward(1);
-            waitForFrame(5);
+            waitForNextFrame();
         }
 
         for(i = 0; i < 3; i++)
         {
             moveLayerBackward(1);
-            waitForFrame(5);
+            waitForNextFrame();
         }
     }
 
@@ -268,20 +224,20 @@ void floatingXLayer(uint8_t replay)
 {
     uint8_t i;
     fillLayer(X_LAYER,RIGHT);
-    waitForFrame(5);
+    waitForNextFrame();
 
     for(;replay > 0; replay--)
     {
         for(i = 0; i < 3; i++)
         {
             moveLayerLeft(1);
-            waitForFrame(5);
+            waitForNextFrame();
         }
 
         for(i = 0; i < 3; i++)
         {
             moveLayerRight(1);
-            waitForFrame(5);
+            waitForNextFrame();
         }
     }
 
@@ -313,7 +269,7 @@ void rain(uint8_t replay)
              */
             for(uint8_t z = 0; z < 4; z++)
             {
-                if(ledValue_Array[x][y][z] != 0)
+                if(*(nextFrame+x+y*4+z*16) != 0)
                 {
                     activeLED = 1;
                     break;
@@ -329,15 +285,15 @@ void rain(uint8_t replay)
         /* Zuerst vorherige Ebenen verschieben */
         moveLayerDown(1);
         /* Neue LED in oberster Ebene aktivieren */
-        ledValue_Array[x][y][TOP] = 1;
-        waitForFrame(15);
+        *(nextFrame+x+y*4+TOP*16) = 1;
+        waitForNextFrame();
     }
 
     /* Regentropfen auslaufen lassen */
     for(uint8_t i = 0; i < 4; i++)
     {
         moveLayerDown(1);
-        waitForFrame(15);
+        waitForNextFrame();
     }
 }
 
@@ -359,10 +315,10 @@ void activateRandomLED(uint8_t replay)
         y = (ledNumber % 16) / 4;     // Bestimmen der y-Ebene
         x = (ledNumber % 16) % 4;     // Bestimmen der x-Ebene
 
-        ledValue_Array[x][y][z] = 1;
-        waitForFrame(5);
-        ledValue_Array[x][y][z] = 0;
-        waitForFrame(5);
+        *(nextFrame+x+y*4+z*16) = 1;
+        waitForNextFrame();
+        *(nextFrame+x+y*4+z*16) = 0;
+        waitForNextFrame();
     }
 }
 
@@ -384,11 +340,11 @@ void fillCube_randomly(uint8_t replay)
             y = (ledNumber % 16) / 4;     // Bestimmen der y-Ebene
             x = (ledNumber % 16) % 4;     // Bestimmen der x-Ebene
 
-            if(ledValue_Array[x][y][z] != 1)
+            if(*(nextFrame+x+y*4+z*16) != 1)
             {
-                ledValue_Array[x][y][z] = 1;
+                *(nextFrame+x+y*4+z*16) = 1;
                 refresh_cnt = 0;
-                waitForFrame(5);
+                waitForNextFrame();
             }
             else
             {
@@ -397,7 +353,7 @@ void fillCube_randomly(uint8_t replay)
                 if(refresh_cnt > 10)
                 {
                     refresh_cnt = 0;
-                    waitForFrame(1);
+                    waitForNextFrame();
                 }
             }
         }
@@ -417,7 +373,7 @@ void clearCube_randomly(uint8_t replay)
     for(;replay > 0; replay--)
     {
         fillLEDCube();
-        waitForFrame(5);
+        waitForNextFrame();
         for(uint8_t i = 0; i < 64; i++)
         {
             ledNumber = rand() % 64;
@@ -425,11 +381,11 @@ void clearCube_randomly(uint8_t replay)
             y = ledNumber % 16 / 4;     // Bestimmen der y-Ebene
             x = ledNumber % 16 % 4;     // Bestimmen der x-Ebene
 
-            if(ledValue_Array[x][y][z] != 0)
+            if(*(nextFrame+x+y*4+z*16) != 0)
             {
-                ledValue_Array[x][y][z] = 0;
+                *(nextFrame+x+y*4+z*16) = 0;
                 refresh_cnt = 0;
-                waitForFrame(5);
+                waitForNextFrame();
             }
             else
             {
@@ -438,7 +394,7 @@ void clearCube_randomly(uint8_t replay)
                 if(refresh_cnt > 10)
                 {
                     refresh_cnt = 0;
-                    waitForFrame(1);
+                    waitForNextFrame();
                 }
             }
         }
@@ -457,7 +413,7 @@ void dropLedTopDown(uint8_t replay)
 
     /* Obere Ebene anschalten */
     fillLayer(Z_LAYER, TOP);
-    waitForFrame(5);
+    waitForNextFrame();
 
     /* LEDs wandern lassen */
     do
@@ -475,28 +431,28 @@ void dropLedTopDown(uint8_t replay)
             if((ledCounter > 9) && (rand() % 2))
             {
                 /* Falls LED ganz unten ist, dann hochschieben */
-                if(ledValue_Array[x][y][BOTTOM] != 0)
+                if(*(nextFrame+x+y*4+BOTTOM*16) != 0)
                 {
                     ledCounter++;
                     for(z = 0; z < 3; z++)
                     {
-                        ledValue_Array[x][y][z] = 0;
-                        ledValue_Array[x][y][z+1] = 1;
-                        waitForFrame(5);
+                        *(nextFrame+x+y*4+z*16) = 0;
+                        *(nextFrame+x+y*4+(z+1)*16) = 1;
+                        waitForNextFrame();
                     }
                 }
             }
             else
             {
                 /* Falls LED ganz oben ist, dann runterfallen lassen */
-                if(ledValue_Array[x][y][TOP] != 0)
+                if(*(nextFrame+x+y*4+TOP*16) != 0)
                 {
                     ledCounter++;
                     for(z = TOP; z > 0; z--)
                     {
-                        ledValue_Array[x][y][z] = 0;
-                        ledValue_Array[x][y][z-1] = 1;
-                        waitForFrame(5);
+                        *(nextFrame+x+y*4+z*16) = 0;
+                        *(nextFrame+x+y*4+(z-1)*16) = 1;
+                        waitForNextFrame();
                     }
                 }
             }
@@ -538,7 +494,7 @@ void dropLedTopDown(uint8_t replay)
 //                default:
 //                    break;
 //            }
-//            waitForFrame(50);
+//            waitForNextFrame();
 //        }
 //    }
 //    clearLEDCube();
@@ -557,7 +513,7 @@ void dropLedTopDown(uint8_t replay)
 //               ledValue_Array[x][y][z](x,1,z,1);
 //            }
 //        }
-//        waitForFrame(30);
+//        waitForNextFrame();
 //
 //        for(uint8_t z = 0; z < 3; z++)
 //        {
@@ -578,7 +534,7 @@ void dropLedTopDown(uint8_t replay)
 //                }
 //            }
 //        }
-//        waitForFrame(30);
+//        waitForNextFrame();
 //
 //        for(uint8_t z = 0; z < 3; z++)
 //        {
@@ -596,7 +552,7 @@ void dropLedTopDown(uint8_t replay)
 //                }
 //            }
 //        }
-//        waitForFrame(30);
+//        waitForNextFrame();
 //
 //        for(uint8_t z = 0; z < 3; z++)
 //        {
@@ -614,7 +570,7 @@ void dropLedTopDown(uint8_t replay)
 //                }
 //            }
 //        }
-//        waitForFrame(30);
+//        waitForNextFrame();
 //
 //        clearLEDCube();
 //    }
@@ -691,10 +647,10 @@ void dropLedTopDown(uint8_t replay)
 //                        }
 //                        y++;
 //                    }
-//                    waitForFrame(100);
+//                    waitForNextFrame();
 //                    break;
 //                }
-//                waitForFrame(40);
+//                waitForNextFrame();
 //
 //                /* Wenn Hälfte der Animation abgearbeitet, dann Rückwärts ablaufen */
 //                if(i >= 2)
@@ -707,7 +663,7 @@ void dropLedTopDown(uint8_t replay)
 //                }
 //            }
 //            clearLEDCube();
-//            waitForFrame(60);
+//            waitForNextFrame();
 //            k = 0;
 //        }
 //    }
@@ -715,5 +671,50 @@ void dropLedTopDown(uint8_t replay)
 
 ISR(TIMER0_COMP_vect)
 {
-    tlc_data_ready = 1;
+    static uint8_t layer = 0;
+
+    PORTC = 0;
+
+    //Update data for all columns
+    for(uint8_t i = 0; i < 16; i++)
+    {
+        Tlc5940_set(ledChannel_Array[i].r,(*(currentFrame+i+layer*16) * color_new.r)); // color[RGB_COLOR_RED].r
+        Tlc5940_set(ledChannel_Array[i].g,(*(currentFrame+i+layer*16) * color_new.g)); // color[RGB_COLOR_RED].g
+        Tlc5940_set(ledChannel_Array[i].b,(*(currentFrame+i+layer*16) * color_new.b)); // color[RGB_COLOR_RED].b
+    }
+
+    //wait until data is shifted in tlc
+    while(Tlc5940_update());
+
+    //Update layer
+    if(layer == 0)
+    {
+        PORTC |= (1 << LAYER_1_PIN);
+    }
+    else if(layer == 1)
+    {
+        PORTC |= (1 << LAYER_2_PIN);
+    }
+    else if(layer == 2)
+    {
+        PORTC |= (1 << LAYER_3_PIN);
+    }
+    else if(layer == 3)
+    {
+        PORTC |= (1 << LAYER_4_PIN);
+    }
+
+    layer++;
+
+    if(layer >= 4)
+    {
+        if(frameReady) {
+            uint8_t *ptr = currentFrame;
+            currentFrame = nextFrame;
+            nextFrame = ptr;
+
+            frameReady = 0;
+        }
+        layer = 0;
+    }
 }

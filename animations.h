@@ -26,6 +26,8 @@
 const extern struct rgbLed ledChannel_Array[16];
 //extern struct rgbLed ledValue_Array[4][4][4];
 extern uint8_t ledValue_Array[4][4][4];
+extern uint8_t *currentFrame;
+extern uint8_t *nextFrame;
 
 void blinkingCube(uint8_t replays);
 void fillCubeDiagonal(uint8_t replays);

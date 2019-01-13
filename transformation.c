@@ -26,7 +26,7 @@ void fillLEDCube(void)
         {
             for(uint8_t x = 0; x < 4; x++)
             {
-                ledValue_Array[x][y][z] = 1;
+                *(nextFrame+x+y*4+z*16) = 1;
             }
         }
     }
@@ -40,7 +40,7 @@ void clearLEDCube(void)
         {
             for(uint8_t x = 0; x < 4; x++)
             {
-                ledValue_Array[x][y][z] = 0;
+                *(nextFrame+x+y*4+z*16) = 0;
             }
         }
     }
@@ -55,7 +55,7 @@ void copyLayer(uint8_t layerType, uint8_t originLayer, uint8_t destinationLayer)
         {
             for(uint8_t y = 0; y < 4; y++)
             {
-                ledValue_Array[destinationLayer][y][z] = ledValue_Array[originLayer][y][z];
+                *(nextFrame+destinationLayer+y*4+z*16) = *(nextFrame+originLayer+y*4+z*16);
             }
         }
     }
@@ -65,7 +65,7 @@ void copyLayer(uint8_t layerType, uint8_t originLayer, uint8_t destinationLayer)
         {
             for(uint8_t x = 0; x < 4; x++)
             {
-                ledValue_Array[x][destinationLayer][z] = ledValue_Array[x][originLayer][z];
+                *(nextFrame+x+destinationLayer*4+z*16) = *(nextFrame+x+originLayer*4+z*16);
             }
         }
     }
@@ -75,7 +75,7 @@ void copyLayer(uint8_t layerType, uint8_t originLayer, uint8_t destinationLayer)
         {
             for(uint8_t x = 0; x < 4; x++)
             {
-                ledValue_Array[x][y][destinationLayer] = ledValue_Array[x][y][originLayer];
+                *(nextFrame+x+y*4+destinationLayer*16) = *(nextFrame+x+y*4+originLayer*16);
             }
         }
     }
@@ -90,7 +90,7 @@ void fillLayer(uint8_t layerType, uint8_t layerNumber)
         {
             for(uint8_t y = 0; y < 4; y++)
             {
-                ledValue_Array[layerNumber][y][z] = 1;
+                *(nextFrame+layerNumber+y*4+z*16) = 1;
             }
         }
     }
@@ -101,7 +101,7 @@ void fillLayer(uint8_t layerType, uint8_t layerNumber)
         {
             for(uint8_t x = 0; x < 4; x++)
             {
-                ledValue_Array[x][layerNumber][z] = 1;
+                *(nextFrame+x+layerNumber*4+z*16) = 1;
             }
         }
     }
@@ -112,7 +112,7 @@ void fillLayer(uint8_t layerType, uint8_t layerNumber)
         {
             for(uint8_t x = 0; x < 4; x++)
             {
-                ledValue_Array[x][y][layerNumber] = 1;
+                *(nextFrame+x+y*4+layerNumber*16) = 1;
             }
         }
     }
@@ -127,7 +127,7 @@ void clearLayer(uint8_t layerType, uint8_t layerNumber)
         {
             for(uint8_t y = 0; y < 4; y++)
             {
-                ledValue_Array[layerNumber][y][z] = 0;
+                *(nextFrame+layerNumber+y*4+z*16) = 0;
             }
         }
     }
@@ -138,7 +138,7 @@ void clearLayer(uint8_t layerType, uint8_t layerNumber)
         {
             for(uint8_t x = 0; x < 4; x++)
             {
-                ledValue_Array[x][layerNumber][z] = 0;
+                *(nextFrame+x+layerNumber*4+z*16) = 0;
             }
         }
     }
@@ -149,7 +149,7 @@ void clearLayer(uint8_t layerType, uint8_t layerNumber)
         {
             for(uint8_t x = 0; x < 4; x++)
             {
-                ledValue_Array[x][y][layerNumber] = 0;
+                *(nextFrame+x+y*4+layerNumber*16) = 0;
             }
         }
     }

@@ -1,6 +1,7 @@
 #include "timer.h"
 #include "rc5.h"
 #include "tlc5940.h"
+#include "animations.h"
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
@@ -11,11 +12,11 @@ volatile uint16_t gs_cnt;
 /* Timer 0 - Frame Updater */
 void Timer0_Init(void)
 {
-    // ((16000000/1024)/976,5625) = 16
+    // ((16000000/256)/400) = 156
     TCCR0 |= (1 << WGM01); //CTC mode
-    OCR0 = 32 - 1;
+    OCR0 = 156 - 1;
     TIMSK |= (1 << OCIE0);
-    TCCR0 |= (1 << CS02) | (1 << CS00); // prescaler = 1024
+    TCCR0 |= (1 << CS02); // prescaler = 256
 }
 
 /* Timer 2 - GSCLK */
@@ -24,7 +25,7 @@ void Timer2_Init(void)
 //    // Initialisierung:
 //    TCCR2 = (1<<CS22);		// Prescaler von 64 und damit Timer starten
 //    TCNT2  = 5;			    // Vorladen für 1 ms
-//    TIMSK |= (1<<TOIE2);	// Interrupts aktivieren
+
 //    sei();
 //
     TCCR2 = (1 << COM20)     // set on BOTTOM, clear on OCR2 (non-inverting),
@@ -46,11 +47,10 @@ void Timer1_Init(void)
 
 ISR(TIMER2_OVF_vect)
 {
-    if(msCount<50)
-    {
-        msCount++;
-    }
-
+//    if(msCount<50)
+//    {
+//        msCount++;
+//    }
     TCNT2 = 5;		// Nachladen
 }
 
