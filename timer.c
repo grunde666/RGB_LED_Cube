@@ -2,6 +2,7 @@
 #include "rc5.h"
 #include "tlc5940.h"
 #include "animations.h"
+#include "uart.h"
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
@@ -14,25 +15,20 @@ void Timer0_Init(void)
 {
     // ((16000000/256)/400) = 156
     TCCR0 |= (1 << WGM01); //CTC mode
-    OCR0 = 156 - 1;
+    OCR0 = 24 - 1;
     TIMSK |= (1 << OCIE0);
-    TCCR0 |= (1 << CS02); // prescaler = 256
+//    TCCR0 |= (1 << CS02) | (1 << CS00); // prescaler = 256
 }
 
 /* Timer 2 - GSCLK */
 void Timer2_Init(void)
 {
-//    // Initialisierung:
-//    TCCR2 = (1<<CS22);		// Prescaler von 64 und damit Timer starten
-//    TCNT2  = 5;			    // Vorladen für 1 ms
-
-//    sei();
-//
     TCCR2 = (1 << COM20)     // set on BOTTOM, clear on OCR2 (non-inverting),
            | (1 << WGM21);   // output on OC2, CTC mode with OCR2 top
-    OCR2 = TLC_GSCLK_PERIOD / 2; // see tlc_config.h
+    OCR2 = TLC_GSCLK_PERIOD; // see tlc_config.h
     TCCR2 |= (1 << CS20);    // no prescale, (start pwm output)
     TCCR1B |= (1 << CS10);  // no prescale, (start pwm output)
+    TCCR0 |= (1 << CS02) | (1 << CS00); // prescaler = 256
 }
 
 /* Timer 1 - BLANK / XLAT */

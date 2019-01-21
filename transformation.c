@@ -2,49 +2,106 @@
 #include "animations.h"
 #include "tlc5940.h"
 
-//void fillLEDCube(struct rgbLed color, uint16_t dimm)
-//{
-//    for(uint8_t z = 0; z < 4; z++)
-//    {
-//        for(uint8_t y = 0; y < 4; y++)
-//        {
-//            for(uint8_t x = 0; x < 4; x++)
-//            {
-//                ledValue_Array[x][y][z].r = color.r * dimm;
-//                ledValue_Array[x][y][z].g = color.g * dimm;
-//                ledValue_Array[x][y][z].b = color.b * dimm;
-//            }
-//        }
-//    }
-//}
+void fillFrame(uint8_t data){
+	for (uint8_t z=0; z<4; z++){
+		for (uint8_t y=0; y<4; y++){
+            for (uint8_t x=0; x<4; x++){
+                *(nextFrame+x+y*4+z*16)=data;
+            }
+		}
+	}
+}
 
 void fillLEDCube(void)
 {
-    for(uint8_t z = 0; z < 4; z++)
-    {
-        for(uint8_t y = 0; y < 4; y++)
-        {
-            for(uint8_t x = 0; x < 4; x++)
-            {
-                *(nextFrame+x+y*4+z*16) = 1;
-            }
-        }
-    }
+    fillFrame(1);
 }
 
 void clearLEDCube(void)
 {
-    for(uint8_t z = 0; z < 4; z++)
-    {
-        for(uint8_t y = 0; y < 4; y++)
-        {
-            for(uint8_t x = 0; x < 4; x++)
-            {
-                *(nextFrame+x+y*4+z*16) = 0;
+   fillFrame(0);
+}
+
+void copyFrame(){
+	for (uint8_t z=0; z<4; z++){
+		for (uint8_t y=0; y<4; y++){
+            for(uint8_t x=0; x<4; x++) {
+                *(nextFrame+x+y*4+z*16)=*(currentFrame+x+y*4+z*16);
             }
+		}
+	}
+}
+
+// Schiebt den Inhalt um eine Position nach vorne, Einfügen von Nullen hinten
+void shiftForward(){
+	for (uint8_t z=0; z<4; z++){
+        for(uint8_t x=0; x<4; x++){
+            for (uint8_t y=1; y<4; y++){
+                *(nextFrame+x+y*4+z*16)=*(currentFrame+x+(y-1)*4+z*16);
+            }
+            *(nextFrame+x+0*4+z*16) = 0;
+		}
+	}
+}
+
+// Schiebt den Inhalt um eine Position nach hinten, Einfügen von Nullen vorne
+void shiftBackward(){
+	for (uint8_t z=0; z<4; z++){
+        for(uint8_t x=0; x<4; x++){
+            for (uint8_t y=0; y<3; y++){
+                *(nextFrame+x+y*4+z*16)=*(currentFrame+x+(y+1)*4+z*16);
+            }
+            *(nextFrame+x+3*4+z*16) = 0;
+		}
+	}
+}
+
+// Schiebt den Inhalt um eine Position nach unten, Einfügen von Nullen oben
+void shiftDownward(){
+	for(uint8_t y=0; y<4; y++){
+	    for(uint8_t x=0; x<4; x++){
+            for(uint8_t z=0; z<3; z++){
+                *(nextFrame+x+y*4+z*16)=*(currentFrame+x+y*4+(z+1)*16);
+            }
+            *(nextFrame+x+y*4+3*16) = 0;
+	    }
+	}
+}
+
+// Schiebt den Inhalt um eine Position nach oben, Einfügen von Nullen unten
+void shiftUpward(){
+	for(uint8_t y=0; y<4; y++){
+        for(uint8_t x=0; x<4; x++){
+            for(uint8_t z=0; z<3; z++){
+                *(nextFrame+x+y*4+(z+1)*16)=*(currentFrame+x+y*4+z*16);
+            }
+            *(nextFrame+x+y*4+0*16) = 0;
         }
-    }
-    Tlc5940_setAll(0);
+	}
+}
+
+// Schiebt den Inhalt um eine Position nach links
+void shiftLeft(){
+	for (uint8_t z=0; z<4; z++){
+		for (uint8_t y=0; y<4; y++){
+            for (uint8_t x=0; x<3; x++){
+                *(nextFrame+x+y*4+z*16)=*(currentFrame+x+1+y*4+z*16);
+            }
+            *(nextFrame+3+y*4+z*16) = 0;
+		}
+	}
+}
+
+// Schiebt den Inhalt um eine Position nach rechts
+void shiftRight(){
+	for (uint8_t z=0; z<4; z++){
+		for (uint8_t y=0; y<4; y++){
+            for (uint8_t x=1; x<4; x++){
+                *(nextFrame+x+y*4+z*16)=*(currentFrame+x-1+y*4+z*16);
+            }
+            *(nextFrame+0+y*4+z*16) = 0;
+		}
+	}
 }
 
 void copyLayer(uint8_t layerType, uint8_t originLayer, uint8_t destinationLayer)

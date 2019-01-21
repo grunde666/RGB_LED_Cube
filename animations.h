@@ -24,12 +24,11 @@
  };
 
 const extern struct rgbLed ledChannel_Array[16];
-//extern struct rgbLed ledValue_Array[4][4][4];
-extern uint8_t ledValue_Array[4][4][4];
-extern uint8_t *currentFrame;
-extern uint8_t *nextFrame;
+extern volatile uint8_t *currentFrame;
+extern volatile uint8_t *nextFrame;
 
 void blinkingCube(uint8_t replays);
+void rainfall(uint16_t frameCt);
 void fillCubeDiagonal(uint8_t replays);
 void rain(uint8_t replay);
 void activateRandomLED(uint8_t replay);
@@ -42,6 +41,7 @@ void cubeFraming(uint8_t replay);
 void floatingXLayer(uint8_t replay);
 void floatingYLayer(uint8_t replay);
 void floatingZLayer(uint8_t replay);
+void randomFill(uint16_t frameCt);
 void everyLED(void);
 
 //void blinkingCube(uint8_t replays);

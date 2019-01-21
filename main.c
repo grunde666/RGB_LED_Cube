@@ -10,7 +10,7 @@
 #include <stdio.h>
 
 #include "transformation.h"
-//#define DEBUG
+#define DEBUG
 
 int main()
 {
@@ -20,21 +20,19 @@ int main()
 //    unsigned int keyCode_high = 0;
 
 #ifdef DEBUG
-    char debug_str[12];
+//    char debug_str[12];
     USART_Init();
 #endif
     InitLayerPins();
 
 //    rc5_init();
 //    NEC_Init();
-//    Timer1_Init();
-//    Timer2_Init();
     Timer0_Init();
     Tlc5940_Init();
     sei();
-//    USART_puts("start application...\n");
+    USART_puts("start application...\n");
 
-//    Tlc5940_setAll(0);
+//    Tlc5940_setAll(255);
 //    uint8_t i;
 //    for(i = 0; i < 16; i++)
 //    {
@@ -52,25 +50,26 @@ int main()
 //        }
 //    }
 
-//    while(Tlc5940_update()){;}
+//    Tlc5940_update();
 
 //    clearLEDCube();
 
-//    PORTC &= ~((1 << LAYER_1_PIN) | (1 << LAYER_3_PIN) | (1 << LAYER_4_PIN));
+//    PORTC |= ((1 << LAYER_1_PIN) | (1 << LAYER_2_PIN) | (1 << LAYER_3_PIN) | (1 << LAYER_4_PIN));
 //    PORTC |= (1 << LAYER_2_PIN);
 
     while(1)
     {
 //        everyLED();
 //        rain(10);
-//        activateRandomLED(10);
-//        fillCube_randomly(1);
-//        clearCube_randomly(1);
-//        dropLedTopDown(10);
-//        floatingXLayer(3);
-//        floatingYLayer(3);
-//        floatingZLayer(3);
-        blinkingCube(5);
+        rainfall(10);
+        activateRandomLED(10);
+        fillCube_randomly(1);
+        clearCube_randomly(1);
+        dropLedTopDown(10);
+        floatingXLayer(3);
+        floatingYLayer(3);
+        floatingZLayer(3);
+//        blinkingCube(5);
 //        fillLEDCube();
 //        keyCode = NEC_CheckInput();
 //
