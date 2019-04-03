@@ -15,10 +15,10 @@ void shiftBackward(void);
 void shiftLeft(void);
 void shiftRight(void);
 void clearLEDCube(void);
-void fillLEDCube(void);
+void fillLEDCube(uint8_t colorValue, uint8_t dimmLevel);
 void copyFrame(void);
 void copyLayer(uint8_t layerType, uint8_t originLayer, uint8_t destinationLayer);
-void fillLayer(uint8_t layerType, uint8_t layerNumber);
+void fillLayer(uint8_t layerType, uint8_t layerNumber, uint8_t colorValue, uint8_t dimmLevel);
 void clearLayer(uint8_t layerType, uint8_t layerNumber);
 
 #endif // TRANSFORMATION_H_INCLUDED

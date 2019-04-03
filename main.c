@@ -1,3 +1,15 @@
+/*
+ * Device displays animations in different programs that user can choose
+ * User can choose different colors during animations
+ * User can control dimming value of cube during animations
+ * User can control device with remote control
+ * Different animation programs:
+ *  - Demo: play pseudo random animations in different colors
+ *  - wholeCube: enlight whole cube in user color (default color is green)
+ *  - dimmingCube: dimm cube von 0% to 100% and vice versa
+ *  - RGB dimming: going through all colors
+*/
+
 #include "system.h"
 #include "rc5.h"
 #include "nec.h"
@@ -10,7 +22,9 @@
 #include <stdio.h>
 
 #include "transformation.h"
-#define DEBUG
+#include "definitions.h"
+
+static void playDemo(void);
 
 int main()
 {
@@ -57,20 +71,25 @@ int main()
 //    PORTC |= ((1 << LAYER_1_PIN) | (1 << LAYER_2_PIN) | (1 << LAYER_3_PIN) | (1 << LAYER_4_PIN));
 //    PORTC |= (1 << LAYER_2_PIN);
 
+    uint8_t actualProgram = 0;
+
     while(1)
     {
-//        everyLED();
-//        rain(10);
-        rainfall(10);
-        activateRandomLED(10);
-        fillCube_randomly(1);
-        clearCube_randomly(1);
-        dropLedTopDown(10);
-        floatingXLayer(3);
-        floatingYLayer(3);
-        floatingZLayer(3);
-//        blinkingCube(5);
-//        fillLEDCube();
+        switch(actualProgram) {
+        case 0:
+            playDemo();
+            break;
+        case 1:
+            fillLEDCube(0,0);
+            break;
+        case 2:
+//            dimmingCube();
+            break;
+        case 3:
+//            playAllColors();
+            break;
+        }
+
 //        keyCode = NEC_CheckInput();
 //
 //        if(keyCode != 0)
@@ -97,4 +116,19 @@ int main()
     }
 
     return 0;
+}
+
+static void playDemo(void) {
+    everyLED();
+//    rain(10);
+    rainfall(10);
+    activateRandomLED(10);
+    fillCube_randomly(1);
+    clearCube_randomly(1);
+    dropLedTopDown(10);
+    floatingXLayer(3);
+    floatingYLayer(3);
+    floatingZLayer(3);
+    blinkingCube(5);
+    fillLEDCube(0,0);
 }

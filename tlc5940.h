@@ -50,7 +50,7 @@
 #define GS_DUO(a, b)    (uint8_t)((a) >> 4), (uint8_t)((a) << 4) | (uint8_t)((b) >> 8), (uint8_t)(b)
 
 extern volatile uint8_t tlc_needXLAT;
-extern volatile void (*tlc_onUpdateFinished)(void);
+//extern volatile void (*tlc_onUpdateFinished)(void);
 extern uint8_t tlc_GSData[NUM_TLCS * 24];
 
 void Tlc5940_Init(void);

@@ -16,6 +16,18 @@
 #define BACK    0
 #define FRONT   3
 
+enum color_type
+{
+    RGB_COLOR_BLACK,
+    RGB_COLOR_BLUE,
+    RGB_COLOR_GREEN,
+    RGB_COLOR_CYAN,
+    RGB_COLOR_RED,
+    RGB_COLOR_MAGENTA,
+    RGB_COLOR_YELLOW,
+    RGB_COLOR_WHITE
+};
+
  struct rgbLed
  {
      uint16_t r;
@@ -23,10 +35,19 @@
      uint16_t b;
  };
 
-const extern struct rgbLed ledChannel_Array[16];
-extern volatile uint8_t *currentFrame;
-extern volatile uint8_t *nextFrame;
+extern const struct rgbLed color[8];
+extern const uint16_t pwmtable_12[128];
+volatile struct rgbLed *currentFrame;
+volatile struct rgbLed *nextFrame;
 
+inline void setRGBLed(volatile struct rgbLed *led, uint8_t colorValue, uint8_t dimmingLevel)
+{
+    led->r = color[colorValue].r * pwmtable_12[dimmingLevel];
+    led->g = color[colorValue].g * pwmtable_12[dimmingLevel];
+    led->b = color[colorValue].b * pwmtable_12[dimmingLevel];
+}
+
+uint8_t getRGBLedColor(volatile struct rgbLed *led);
 void blinkingCube(uint8_t replays);
 void rainfall(uint16_t frameCt);
 void fillCubeDiagonal(uint8_t replays);

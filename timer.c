@@ -15,9 +15,9 @@ void Timer0_Init(void)
 {
     // ((16000000/256)/400) = 156
     TCCR0 |= (1 << WGM01); //CTC mode
-    OCR0 = 24 - 1;
+    OCR0 = 32 - 1;
     TIMSK |= (1 << OCIE0);
-//    TCCR0 |= (1 << CS02) | (1 << CS00); // prescaler = 256
+    TCCR0 |= (1 << CS02) | (1 << CS00); // prescaler = 256
 }
 
 /* Timer 2 - GSCLK */
