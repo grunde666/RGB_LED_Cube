@@ -80,7 +80,7 @@ int main()
             playDemo();
             break;
         case 1:
-            fillLEDCube(0,0);
+//            fillLEDCube(0,0);
             break;
         case 2:
 //            dimmingCube();
@@ -129,6 +129,6 @@ static void playDemo(void) {
     floatingXLayer(3);
     floatingYLayer(3);
     floatingZLayer(3);
-    blinkingCube(5);
-    fillLEDCube(0,0);
+    fadeColorCube(5);
+//    fillLEDCube(0,0);
 }

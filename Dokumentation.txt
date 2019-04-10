@@ -1,0 +1,31 @@
+Genereller Ablauf der Animationen:
+
+SetLedColor(struct rgb *led, const struct hsv *color) bestimmt Farbe im HSV-Format für angegebene LED mit Gammakorrektur
+Falls User über Fernbedienung Helligkeit oder Farbe ändert, dann werden alle aktiven LEDs im nächsten Frame geändert.
+
+Eigenschaften der Fernbedienung:
+- LED-Cube ein/aus			--> wird in main behandelt
+- Helligkeit einstellen			--> Änderung in globaler Variable globalHSV.v
+- Farbe einstellen			--> Änderung in globaler Variable globalsHSV.h/s
+- Geschwindigkeit der Animation ändern	--> Änderung in globaler Variable
+- Bestimmte Animation einstellen	--> wird in main behandelt
+
+Animationen:
+- everyLED: aktiviert nacheinander alle LEDs --> Hauptsächlich für Testzwecke
+- rainfall: regenähnliche Animation in einer Farbe
+
+
+x	x	x	x
+12			15
+
+
+x	x	x	x
+
+
+
+x	x	x	x
+
+
+
+x	x	x	x	
+0			3

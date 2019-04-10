@@ -1,25 +1,24 @@
 #include "transformation.h"
-#include "animations.h"
 #include "tlc5940.h"
 
-static void fillFrame(uint8_t colorValue, uint8_t dimmLevel){
+static void fillFrame(const struct hsv *newColor){
 	for (uint8_t z=0; z<4; z++){
 		for (uint8_t y=0; y<4; y++){
             for (uint8_t x=0; x<4; x++){
-                setRGBLed((nextFrame+x+y*4+z*16), colorValue, dimmLevel);
+                setLedColor((nextFrame+x+y*4+z*16), newColor);
             }
 		}
 	}
 }
 
-void fillLEDCube(uint8_t colorValue, uint8_t dimmLevel)
+void fillLEDCube(struct hsv *newColor)
 {
-    fillFrame(colorValue, dimmLevel);
+    fillFrame(newColor);
 }
 
 void clearLEDCube(void)
 {
-   fillFrame(RGB_COLOR_BLACK,0);
+   fillFrame(&color_table[HSV_COLOR_BLACK]);
 }
 
 void copyFrame(){
@@ -170,7 +169,7 @@ void copyLayer(uint8_t layerType, uint8_t originLayer, uint8_t destinationLayer)
     }
 }
 
-void fillLayer(uint8_t layerType, uint8_t layerNumber, uint8_t colorValue, uint8_t dimmLevel)
+void fillLayer(uint8_t layerType, uint8_t layerNumber, struct hsv *newColor)
 {
     if(layerType == X_LAYER)
     {
@@ -179,7 +178,7 @@ void fillLayer(uint8_t layerType, uint8_t layerNumber, uint8_t colorValue, uint8
         {
             for(uint8_t y = 0; y < 4; y++)
             {
-                setRGBLed((nextFrame+layerNumber+y*4+z*16), colorValue, dimmLevel);
+                setLedColor((nextFrame+layerNumber+y*4+z*16), newColor);
             }
         }
     }
@@ -190,7 +189,7 @@ void fillLayer(uint8_t layerType, uint8_t layerNumber, uint8_t colorValue, uint8
         {
             for(uint8_t x = 0; x < 4; x++)
             {
-                setRGBLed((nextFrame+x+layerNumber*4+z*16), colorValue, dimmLevel);
+                setLedColor((nextFrame+x+layerNumber*4+z*16), newColor);
             }
         }
     }
@@ -201,7 +200,7 @@ void fillLayer(uint8_t layerType, uint8_t layerNumber, uint8_t colorValue, uint8
         {
             for(uint8_t x = 0; x < 4; x++)
             {
-                setRGBLed((nextFrame+x+y*4+layerNumber*16), colorValue, dimmLevel);
+                setLedColor((nextFrame+x+y*4+layerNumber*16), newColor);
             }
         }
     }
@@ -216,7 +215,7 @@ void clearLayer(uint8_t layerType, uint8_t layerNumber)
         {
             for(uint8_t y = 0; y < 4; y++)
             {
-                setRGBLed((nextFrame+layerNumber+y*4+z*16), RGB_COLOR_BLACK, 0);
+                setLedColor((nextFrame+layerNumber+y*4+z*16), &color_table[HSV_COLOR_BLACK]);
             }
         }
     }
@@ -227,7 +226,7 @@ void clearLayer(uint8_t layerType, uint8_t layerNumber)
         {
             for(uint8_t x = 0; x < 4; x++)
             {
-                setRGBLed((nextFrame+x+layerNumber*4+z*16), RGB_COLOR_BLACK, 0);
+                setLedColor((nextFrame+x+layerNumber*4+z*16), &color_table[HSV_COLOR_BLACK]);
             }
         }
     }
@@ -238,7 +237,7 @@ void clearLayer(uint8_t layerType, uint8_t layerNumber)
         {
             for(uint8_t x = 0; x < 4; x++)
             {
-                setRGBLed((nextFrame+x+y*4+layerNumber*16), RGB_COLOR_BLACK, 0);
+                setLedColor((nextFrame+x+y*4+layerNumber*16), &color_table[HSV_COLOR_BLACK]);
             }
         }
     }

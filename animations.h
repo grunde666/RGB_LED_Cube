@@ -16,7 +16,7 @@
 #define BACK    0
 #define FRONT   3
 
-enum color_type
+enum rgb_color_type
 {
     RGB_COLOR_BLACK,
     RGB_COLOR_BLUE,
@@ -28,6 +28,25 @@ enum color_type
     RGB_COLOR_WHITE
 };
 
+enum hsv_color_type
+{
+    HSV_COLOR_RED,
+    HSV_COLOR_ORANGE,
+    HSV_COLOR_YELLOW,
+    HSV_COLOR_VIOLET,
+    HSV_COLOR_BLACK,
+    HSV_COLOR_BLUE,
+    HSV_COLOR_BROWN,
+    HSV_COLOR_WHITE,
+    HSV_COLOR_GREEN,
+    HSV_COLOR_CYAN,
+    HSV_COLOR_MAGENTA,
+    HSV_COLOR_BLUEGREEN,
+    HSV_COLOR_GREENBLUE,
+    HSV_COLOR_GREENYELLOW,
+    HSV_COLOR_BLUERED
+};
+
  struct rgbLed
  {
      uint16_t r;
@@ -35,34 +54,33 @@ enum color_type
      uint16_t b;
  };
 
-extern const struct rgbLed color[8];
-extern const uint16_t pwmtable_12[128];
+ struct hsv
+ {
+    uint8_t h;
+    uint8_t s;
+    uint8_t v;
+ };
+
+extern const struct hsv color_table[15];
 volatile struct rgbLed *currentFrame;
 volatile struct rgbLed *nextFrame;
 
-inline void setRGBLed(volatile struct rgbLed *led, uint8_t colorValue, uint8_t dimmingLevel)
-{
-    led->r = color[colorValue].r * pwmtable_12[dimmingLevel];
-    led->g = color[colorValue].g * pwmtable_12[dimmingLevel];
-    led->b = color[colorValue].b * pwmtable_12[dimmingLevel];
-}
+uint8_t getLedColor(volatile struct rgbLed *led);
+void setLedColor(volatile struct rgbLed *led, const struct hsv *newHSV);
 
-uint8_t getRGBLedColor(volatile struct rgbLed *led);
-void blinkingCube(uint8_t replays);
-void rainfall(uint16_t frameCt);
+void fadeColorCube(uint8_t replays);
+void rainfall(uint8_t replays);
 void fillCubeDiagonal(uint8_t replays);
-void rain(uint8_t replay);
 void activateRandomLED(uint8_t replay);
 void fillCube_randomly(uint8_t replay);
 void clearCube_randomly(uint8_t replay);
 void dropLedTopDown(uint8_t replay);
-void explosion(uint8_t replay);
-void rotateLayer(uint8_t replay);
-void cubeFraming(uint8_t replay);
+//void explosion(uint8_t replay);
+//void rotateLayer(uint8_t replay);
+//void cubeFraming(uint8_t replay);
 void floatingXLayer(uint8_t replay);
 void floatingYLayer(uint8_t replay);
 void floatingZLayer(uint8_t replay);
-void randomFill(uint16_t frameCt);
 void everyLED(void);
 
 //void blinkingCube(uint8_t replays);
