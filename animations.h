@@ -36,7 +36,6 @@ enum hsv_color_type
     HSV_COLOR_VIOLET,
     HSV_COLOR_BLACK,
     HSV_COLOR_BLUE,
-    HSV_COLOR_BROWN,
     HSV_COLOR_WHITE,
     HSV_COLOR_GREEN,
     HSV_COLOR_CYAN,
@@ -61,27 +60,30 @@ enum hsv_color_type
     uint8_t v;
  };
 
-extern const struct hsv color_table[15];
-volatile struct rgbLed *currentFrame;
-volatile struct rgbLed *nextFrame;
+extern const struct hsv color_table[14];
+extern struct hsv globalHSV;
+extern volatile struct rgbLed *currentFrame;
+extern volatile struct rgbLed *nextFrame;
+extern volatile uint8_t frameReady;
 
 uint8_t getLedColor(volatile struct rgbLed *led);
 void setLedColor(volatile struct rgbLed *led, const struct hsv *newHSV);
 
-void fadeColorCube(uint8_t replays);
-void rainfall(uint8_t replays);
-void fillCubeDiagonal(uint8_t replays);
-void activateRandomLED(uint8_t replay);
-void fillCube_randomly(uint8_t replay);
-void clearCube_randomly(uint8_t replay);
-void dropLedTopDown(uint8_t replay);
+uint8_t fadeColorCube(uint8_t replay);
+uint8_t rainfall(uint8_t replay);
+uint8_t fillCubeDiagonal(uint8_t replay);
+uint8_t randomLedColorCube(uint8_t replay);
+uint8_t activateRandomLED(uint8_t replay);
+uint8_t fillCube_randomly(uint8_t replay);
+uint8_t clearCube_randomly(uint8_t replay);
+uint8_t dropLedTopDown(uint8_t replay);
 //void explosion(uint8_t replay);
 //void rotateLayer(uint8_t replay);
 //void cubeFraming(uint8_t replay);
-void floatingXLayer(uint8_t replay);
-void floatingYLayer(uint8_t replay);
-void floatingZLayer(uint8_t replay);
-void everyLED(void);
+uint8_t floatingXLayer(uint8_t replay);
+uint8_t floatingYLayer(uint8_t replay);
+uint8_t floatingZLayer(uint8_t replay);
+uint8_t everyLED(void);
 
 //void blinkingCube(uint8_t replays);
 #endif // ANIMATIONS_H_INCLUDED

@@ -23,6 +23,7 @@
 
 #include "transformation.h"
 #include "definitions.h"
+#include "animations.h"
 
 static void playDemo(void);
 
@@ -34,7 +35,7 @@ int main()
 //    unsigned int keyCode_high = 0;
 
 #ifdef DEBUG
-//    char debug_str[12];
+    char debug_str[12];
     USART_Init();
 #endif
     InitLayerPins();
@@ -46,48 +47,29 @@ int main()
     sei();
     USART_puts("start application...\n");
 
-//    Tlc5940_setAll(255);
-//    uint8_t i;
-//    for(i = 0; i < 16; i++)
-//    {
-//        if(i == 7)
-//        {
-//            Tlc5940_set(ledChannel_Array[i].b, 4095);
-//            Tlc5940_set(ledChannel_Array[i].r, 4095);
-//            Tlc5940_set(ledChannel_Array[i].g, 4095);
-//        }
-//        else
-//        {
-////            Tlc5940_set(ledChannel_Array[i].b, 1024);
-////            Tlc5940_set(ledChannel_Array[i].r, 1024);
-////            Tlc5940_set(ledChannel_Array[i].g, 1024);
-//        }
-//    }
-
-//    Tlc5940_update();
-
-//    clearLEDCube();
-
-//    PORTC |= ((1 << LAYER_1_PIN) | (1 << LAYER_2_PIN) | (1 << LAYER_3_PIN) | (1 << LAYER_4_PIN));
-//    PORTC |= (1 << LAYER_2_PIN);
-
     uint8_t actualProgram = 0;
+
+    globalHSV.h = color_table[HSV_COLOR_MAGENTA].h;
+    globalHSV.s = color_table[HSV_COLOR_MAGENTA].s;
+    globalHSV.v = color_table[HSV_COLOR_MAGENTA].v;
 
     while(1)
     {
-        switch(actualProgram) {
-        case 0:
-            playDemo();
-            break;
-        case 1:
-//            fillLEDCube(0,0);
-            break;
-        case 2:
-//            dimmingCube();
-            break;
-        case 3:
-//            playAllColors();
-            break;
+        if(frameReady == 0) {
+            switch(actualProgram) {
+            case 0:
+                playDemo();
+                break;
+            case 1:
+    //            fillLEDCube(0,0);
+                break;
+            case 2:
+    //            dimmingCube();
+                break;
+            case 3:
+    //            playAllColors();
+                break;
+            }
         }
 
 //        keyCode = NEC_CheckInput();
@@ -119,16 +101,126 @@ int main()
 }
 
 static void playDemo(void) {
-    everyLED();
-//    rain(10);
-    rainfall(10);
-    activateRandomLED(10);
-    fillCube_randomly(1);
-    clearCube_randomly(1);
-    dropLedTopDown(10);
-    floatingXLayer(3);
-    floatingYLayer(3);
-    floatingZLayer(3);
-    fadeColorCube(5);
-//    fillLEDCube(0,0);
+    static uint8_t demoState = 0;
+    static uint8_t colorCNT = 0;
+
+    switch(demoState) {
+    case 0:
+        if(fillCubeDiagonal(1) == 0)
+        {
+#ifdef DEBUG
+            USART_puts("rainfall\n");
+#endif
+            demoState = 1;
+        }
+        break;
+    case 1:
+        if(rainfall(10) == 0)
+        {
+#ifdef DEBUG
+            USART_puts("activateRandomLED\n");
+#endif
+            demoState = 2;
+        }
+        break;
+    case 2:
+        if(activateRandomLED(10) == 0)
+        {
+#ifdef DEBUG
+            USART_puts("fillCube_randomly\n");
+#endif
+            demoState = 3;
+        }
+        break;
+    case 3:
+        if(fillCube_randomly(0) == 0)
+        {
+#ifdef DEBUG
+            USART_puts("clearCube_randomly\n");
+#endif
+            demoState = 4;
+        }
+        break;
+    case 4:
+        if(clearCube_randomly(0) == 0)
+        {
+#ifdef DEBUG
+            USART_puts("dropLedTopDown\n");
+#endif
+            demoState = 5;
+        }
+        break;
+    case 5:
+        if(dropLedTopDown(10) == 0)
+        {
+#ifdef DEBUG
+            USART_puts("fadeColorCube\n");
+#endif
+            demoState = 6;
+        }
+        break;
+    case 6:
+        if(fadeColorCube(0) == 0)
+        {
+#ifdef DEBUG
+            USART_puts("floatingXLayer\n");
+#endif
+            demoState = 7;
+        }
+        break;
+    case 7:
+        if(floatingXLayer(3) == 0)
+        {
+#ifdef DEBUG
+            USART_puts("floatingYLayer\n");
+#endif
+            demoState = 8;
+        }
+        break;
+    case 8:
+        if(floatingYLayer(3) == 0)
+        {
+#ifdef DEBUG
+            USART_puts("floatingZLayer\n");
+#endif
+            demoState = 9;
+        }
+        break;
+    case 9:
+        if(floatingZLayer(3) == 0)
+        {
+#ifdef DEBUG
+            USART_puts("randomLedColorCube\n");
+#endif
+            demoState = 10;
+        }
+        break;
+    case 10:
+        if(randomLedColorCube(5) == 0)
+        {
+#ifdef DEBUG
+            USART_puts("different colors\n");
+#endif
+            demoState = 11;
+        }
+        break;
+    case 11:
+        if(fillCube_randomly(0) == 0)
+        {
+            if(colorCNT == 14) {
+#ifdef DEBUG
+                USART_puts("fillCubeDiagonal\n");
+#endif
+                demoState = 0;
+                colorCNT = 0;
+            }
+            else {
+                globalHSV.h = color_table[colorCNT].h;
+                globalHSV.s = color_table[colorCNT].s;
+                globalHSV.v = color_table[colorCNT].v;
+                colorCNT++;
+            }
+        }
+        break;
+    }
 }

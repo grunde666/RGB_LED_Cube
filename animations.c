@@ -20,10 +20,11 @@
  *
  */
 
- #define FRAMECOUNT_VALUE_SLOW          50
- #define FRAMECOUNT_VALUE_MEDIUM        25
- #define FRAMECOUNT_VALUE_FAST          10
- #define FRAMECOUNT_VALUE_VERY_FAST     5
+#define FRAMECOUNT_VALUE_VERY_SLOW     80
+#define FRAMECOUNT_VALUE_SLOW          40
+#define FRAMECOUNT_VALUE_MEDIUM        20
+#define FRAMECOUNT_VALUE_FAST          10
+#define FRAMECOUNT_VALUE_VERY_FAST     5
 
 volatile uint8_t frameReady = 0;
 volatile uint8_t frameCnt = 0;
@@ -41,15 +42,12 @@ volatile struct rgbLed *nextFrame = &ledValue_Array2[0][0][0];
 
 static uint8_t animationState = 0;
 
-uint8_t globalColor = RGB_COLOR_RED;
-uint8_t globalDimmingLevel = 64;
-
-const struct hsv color_table[15] =
+const struct hsv color_table[14] =
 {
     {0,255,255}, {21,255,255}, {42,255,255}, {192,255,255},
-    {0,0,0}, {171,255,255}, {14,191,92}, {0,0,255},
-    {85,255,255}, {128,255,255}, {213,255,255}, {107,255,255},
-    {149,255,255}, {64,255,255}, {235,255,255}
+    {0,0,0}, {171,255,255}, {0,0,255}, {85,255,255},
+    {128,255,255}, {213,255,255}, {107,255,255}, {149,255,255},
+    {64,255,255}, {235,255,255}
 };
 
 // struct of led pinning
@@ -88,13 +86,13 @@ static void waitForNextFrame(uint8_t counter) {
 	frameCnt = counter;
 	sei();
 
-#ifdef DEBUG
-	USART_puts("load next Frame...\t");
-	USART_puts("counter = ");
-	USART_putc(counter/10+48);
-	USART_putc(counter%10+48);
-	USART_putc('\n');
-#endif
+//#ifdef DEBUG
+//	USART_puts("load next Frame...\t");
+//	USART_puts("counter = ");
+//	USART_putc(counter/10+48);
+//	USART_putc(counter%10+48);
+//	USART_putc('\n');
+//#endif
 }
 
 uint8_t getLedColor(volatile struct rgbLed *led)
@@ -188,13 +186,12 @@ void setLedColor(volatile struct rgbLed *led, const struct hsv *newColor)
 }
 
 // Activates every led one by one
-void everyLED(void)
+uint8_t everyLED(void)
 {
     static uint8_t lednumber = 0;   //counter for active leds
-
     // Check if new frame is displayed
-    if (frameReady == 0)
-    {
+//    if (frameReady == 0)
+//    {
         switch (animationState)
         {
         case 0:
@@ -235,21 +232,22 @@ void everyLED(void)
             break;
         }
         waitForNextFrame(FRAMECOUNT_VALUE_FAST);
-    }
+//    }
+    return animationState;
 }
 
 // Regenähnliche Animation
 // Auf der obersten Ebene werden zufällige LEDs aktiviert, die sich dann nach unten bewegen
-void rainfall(uint8_t replays){
+uint8_t rainfall(uint8_t replay){
     uint8_t activeLED = 1;
     uint8_t lednumber = 0;
 
-    if(frameReady == 0) {
+//    if(frameReady == 0) {
         switch(animationState) {
         case 0:
             srand(20);
             clearLEDCube();
-            counter = replays;
+            counter = replay;
             localHSV.h = globalHSV.h;
             localHSV.s = globalHSV.s;
             localHSV.v = globalHSV.v;
@@ -257,8 +255,8 @@ void rainfall(uint8_t replays){
             break;
         case 1:
             shiftDownward();
-            //Maximum of 5 Leds at the same time
-            for(uint8_t ct = rand() % 4 + 1; ct > 0; ct--){
+            //Maximum of 4 Leds at the same time
+            for(uint8_t ct = rand() % 3 + 1; ct > 0; ct--){
                 do{
                     lednumber = rand() % 16;
                     //Look for active led in column
@@ -308,19 +306,20 @@ void rainfall(uint8_t replays){
             }
         }
 
-        waitForNextFrame(FRAMECOUNT_VALUE_VERY_FAST);
-    }
+        waitForNextFrame(FRAMECOUNT_VALUE_FAST);
+//    }
+    return animationState;
 }
 
-void fadeColorCube(uint8_t replays)
+uint8_t fadeColorCube(uint8_t replay)
 {
-    if(frameReady == 0) {
+//    if(frameReady == 0) {
 
         if(animationState == 0) {
             localHSV.h = globalHSV.h;
             localHSV.s = globalHSV.s;
             localHSV.v = globalHSV.v;
-            counter = replays;
+            counter = replay;
             animationState = 1;
         }
 
@@ -330,23 +329,26 @@ void fadeColorCube(uint8_t replays)
             fillLEDCube(&localHSV);
             if(localHSV.h == globalHSV.h)
             {
-                counter--;
                 if(counter == 0) {
                     animationState = 0;
+                }
+                else {
+                    counter--;
                 }
             }
             break;
         }
 
-        waitForNextFrame(FRAMECOUNT_VALUE_MEDIUM);
-    }
+        waitForNextFrame(FRAMECOUNT_VALUE_FAST);
+//    }
+    return animationState;
 }
 
-void randomLedColorCube(uint8_t replays) {
-    if(frameReady == 0) {
+uint8_t randomLedColorCube(uint8_t replay) {
+//    if(frameReady == 0) {
 
         if(animationState == 0) {
-            counter = replays;
+            counter = replay;
             animationState = 1;
         }
 
@@ -355,7 +357,10 @@ void randomLedColorCube(uint8_t replays) {
             for(uint8_t i = 0; i < 64; i++)
             {
                 uint8_t color = 0;
-                color = rand() % 15;
+                color = rand() % 14;
+                if(color == HSV_COLOR_BLACK) {
+                    color++;
+                }
                 localHSV.h = color_table[color].h;
                 localHSV.s = color_table[color].s;
                 localHSV.v = color_table[color].v;
@@ -363,20 +368,24 @@ void randomLedColorCube(uint8_t replays) {
                 setLedColor((nextFrame + i), &localHSV);
             }
 
-            counter--;
             if(counter == 0) {
                 animationState = 0;
+            }
+            else {
+                counter--;
             }
             break;
         }
 
-        waitForNextFrame(FRAMECOUNT_VALUE_MEDIUM);
-    }
+        waitForNextFrame(FRAMECOUNT_VALUE_SLOW);
+//    }
+    return animationState;
 }
 
-void fillCubeDiagonal(uint8_t replays)
+//TODO 4. Layer muss mit einbezogen werden
+uint8_t fillCubeDiagonal(uint8_t replays)
 {
-    if(frameReady == 0) {
+//    if(frameReady == 0) {
 
         if(animationState == 0) {
             localHSV.h = globalHSV.h;
@@ -446,12 +455,13 @@ void fillCubeDiagonal(uint8_t replays)
         }
 
         waitForNextFrame(FRAMECOUNT_VALUE_MEDIUM);
-    }
+//    }
+    return animationState;
 }
 
-void floatingZLayer(uint8_t replay)
+uint8_t floatingZLayer(uint8_t replay)
 {
-    if(frameReady == 0) {
+//    if(frameReady == 0) {
         switch(animationState) {
         case 0:
             localHSV.h = globalHSV.h;
@@ -470,11 +480,11 @@ void floatingZLayer(uint8_t replay)
             break;
         case 4:
         case 5:
-        case 6:
             shiftDownward();
             animationState++;
             break;
-        case 7:
+        case 6:
+            shiftDownward();
             if(counter == 0) {
                 animationState = 0;
             }
@@ -497,13 +507,14 @@ void floatingZLayer(uint8_t replay)
             }
         }
 
-        waitForNextFrame(FRAMECOUNT_VALUE_FAST);
-    }
+        waitForNextFrame(FRAMECOUNT_VALUE_MEDIUM);
+//    }
+    return animationState;
 }
 
-void floatingYLayer(uint8_t replay)
+uint8_t floatingYLayer(uint8_t replay)
 {
-    if(frameReady == 0) {
+//    if(frameReady == 0) {
         switch(animationState) {
         case 0:
             localHSV.h = globalHSV.h;
@@ -522,11 +533,11 @@ void floatingYLayer(uint8_t replay)
             break;
         case 4:
         case 5:
-        case 6:
             shiftBackward();
             animationState++;
             break;
-        case 7:
+        case 6:
+            shiftBackward();
             if(counter == 0) {
                 animationState = 0;
             }
@@ -549,13 +560,14 @@ void floatingYLayer(uint8_t replay)
             }
         }
 
-        waitForNextFrame(FRAMECOUNT_VALUE_FAST);
-    }
+        waitForNextFrame(FRAMECOUNT_VALUE_MEDIUM);
+//    }
+    return animationState;
 }
 
-void floatingXLayer(uint8_t replay)
+uint8_t floatingXLayer(uint8_t replay)
 {
-    if(frameReady == 0) {
+//    if(frameReady == 0) {
         switch(animationState) {
         case 0:
             localHSV.h = globalHSV.h;
@@ -574,11 +586,11 @@ void floatingXLayer(uint8_t replay)
             break;
         case 4:
         case 5:
-        case 6:
             shiftRight();
             animationState++;
             break;
-        case 7:
+        case 6:
+            shiftRight();
             if(counter == 0) {
                 animationState = 0;
             }
@@ -601,18 +613,19 @@ void floatingXLayer(uint8_t replay)
             }
         }
 
-        waitForNextFrame(FRAMECOUNT_VALUE_FAST);
-    }
+        waitForNextFrame(FRAMECOUNT_VALUE_MEDIUM);
+//    }
+    return animationState;
 }
 
 /*
  * Zufallsgenerator bestimmt LED die aktiviert werden soll
  */
-void activateRandomLED(uint8_t replay)
+uint8_t activateRandomLED(uint8_t replay)
 {
-    uint8_t ledNumber = 0;
+    static uint8_t ledNumber = 0;
 
-    if(frameReady == 0) {
+//    if(frameReady == 0) {
         if(animationState == 0) {
             /* Intializes random number generator */
             srand(5);
@@ -626,6 +639,7 @@ void activateRandomLED(uint8_t replay)
 
         switch(animationState) {
         case 1:
+            copyFrame();
             ledNumber = rand() % 64;
             setLedColor((nextFrame+ledNumber), &localHSV);
             animationState = 2;
@@ -633,10 +647,6 @@ void activateRandomLED(uint8_t replay)
         case 2:
             copyFrame();
             setLedColor((nextFrame+ledNumber), &color_table[HSV_COLOR_BLACK]);
-            animationState = 3;
-            break;
-        case 3:
-            copyFrame();
             if(counter == 0) {
                 animationState = 0;
             }
@@ -660,15 +670,16 @@ void activateRandomLED(uint8_t replay)
         }
 
         waitForNextFrame(FRAMECOUNT_VALUE_VERY_FAST);
-    }
+//    }
+    return animationState;
 }
 
-void fillCube_randomly(uint8_t replay)
+uint8_t fillCube_randomly(uint8_t replay)
 {
     uint8_t ledNumber = 0;
     static uint8_t activeLEDs = 0;
 
-    if(frameReady == 0) {
+//    if(frameReady == 0) {
         if(animationState == 0) {
             /* Intializes random number generator */
             srand(9);
@@ -682,6 +693,7 @@ void fillCube_randomly(uint8_t replay)
             localHSV.h = globalHSV.h;
             localHSV.s = globalHSV.s;
             localHSV.v = globalHSV.v;
+            activeLEDs = 0;
             animationState = 2;
             break;
         case 2:
@@ -694,20 +706,17 @@ void fillCube_randomly(uint8_t replay)
                     setLedColor((nextFrame+ledNumber), &localHSV);
                     activeLEDs++;
                     if(activeLEDs == 64) {
-                        animationState = 3;
+                        if(counter == 0) {
+                            animationState = 0;
+                        }
+                        else {
+                            counter--;
+                            animationState = 1;
+                        }
                     }
                     break;
                 }
             }while(1);
-            break;
-        case 3:
-            if(counter == 0) {
-                animationState = 0;
-            }
-            else {
-                counter--;
-                animationState = 1;
-            }
             break;
         }
 
@@ -724,15 +733,16 @@ void fillCube_randomly(uint8_t replay)
         }
 
         waitForNextFrame(FRAMECOUNT_VALUE_FAST);
-    }
+//    }
+    return animationState;
 }
 
-void clearCube_randomly(uint8_t replay)
+uint8_t clearCube_randomly(uint8_t replay)
 {
     uint8_t ledNumber = 0;
     static uint8_t activeLEDs = 0;
 
-    if(frameReady == 0) {
+//    if(frameReady == 0) {
         if(animationState == 0) {
             /* Intializes random number generator */
             srand(5);
@@ -746,6 +756,7 @@ void clearCube_randomly(uint8_t replay)
             localHSV.s = globalHSV.s;
             localHSV.v = globalHSV.v;
             fillLEDCube(&localHSV);
+            activeLEDs = 0;
             animationState = 2;
             break;
         case 2:
@@ -758,20 +769,17 @@ void clearCube_randomly(uint8_t replay)
                     setLedColor((nextFrame+ledNumber), &color_table[HSV_COLOR_BLACK]);
                     activeLEDs++;
                     if(activeLEDs == 64) {
-                        animationState = 3;
+                        if(counter == 0) {
+                            animationState = 0;
+                        }
+                        else {
+                            counter--;
+                            animationState = 1;
+                        }
                     }
                     break;
                 }
             }while(1);
-            break;
-        case 3:
-            if(counter == 0) {
-                animationState = 0;
-            }
-            else {
-                counter--;
-                animationState = 1;
-            }
             break;
         }
 
@@ -788,15 +796,17 @@ void clearCube_randomly(uint8_t replay)
         }
 
         waitForNextFrame(FRAMECOUNT_VALUE_FAST);
-    }
+//    }
+    return animationState;
 }
 
-void dropLedTopDown(uint8_t replay)
+//TODO nur eine Säule geht durch anstatt mehrere
+uint8_t dropLedTopDown(uint8_t replay)
 {
-    uint8_t ledNumber = 0;
+    static uint8_t ledNumber = 0;
     static uint8_t lastLED = 0;
 
-    if(frameReady == 0) {
+//    if(frameReady == 0) {
         if(animationState == 0) {
             /* Intializes random number generator */
             srand(32);
@@ -904,8 +914,9 @@ void dropLedTopDown(uint8_t replay)
             }
         }
 
-        waitForNextFrame(FRAMECOUNT_VALUE_FAST);
-    }
+        waitForNextFrame(FRAMECOUNT_VALUE_MEDIUM);
+//    }
+    return animationState;
 }
 
 //void explosion(uint8_t replay)
@@ -1020,180 +1031,180 @@ void dropLedTopDown(uint8_t replay)
 //    }
 //}
 
-void cubeFraming(uint8_t replay)
-{
-    static uint8_t led_start = 0;
-
-    if(frameReady == 0) {
-        if(animationState == 0) {
-            counter = replay;
-            clearLEDCube();
-            animationState = 1;
-            localHSV.h = globalHSV.h;
-            localHSV.s = globalHSV.s;
-            localHSV.v = globalHSV.v;
-        }
-
-        switch(animationState) {
-        case 1:
-            /* Erste LED in einer Ecke aktivieren */
-            setLedColor((nextFrame+led_start+0*16), &localHSV);
-            animationState = 2;
-            break;
-        case 2:
-            clearLEDCube();
-            /* Würfel mit 8 LEDs aktivieren */
-            for(uint8_t x = (0+(led_start%4)/2); x < (2+(led_start%4)/2); x++)
-            {
-                for(uint8_t y = (0+(led_start/4)/2); y < (2+(led_start/4)/2); y++)
-                {
-                    for(uint8_t z = 0; z < 2; z++)
-                    {
-                        setLedColor((nextFrame+x+y*4+z*16), &localHSV);
-                    }
-                }
-            }
-            animationState = 3;
-            break;
-        case 3:
-            clearLEDCube();
-            for(uint8_t y = 0; y < 3; y++)
-            {
-                for(uint8_t x = 0; x < 3; x++)
-                {
-                    setLedColor((nextFrame+x+y*4+0*16), &localHSV);
-                }
-            }
-            setLedColor((nextFrame+1+1*4+z*16), &color_table[HSV_COLOR_BLACK]);
-            copyLayer(Z_LAYER,BOTTOM,TOP-1);
-            for(uint8_t y = 0; y < 3; y++)
-            {
-                for(uint8_t x = 0; x < 3; x++)
-                {
-                    setLedColor((nextFrame+x+y*4+1*16), &localHSV);
-                    x++;
-                }
-                y++;
-            }
-            animationState = 4;
-            break;
-        }
-
-        if((globalHSV.h != localHSV.h) || (globalHSV.s != localHSV.s) || (globalHSV.v != localHSV.v)) {
-            localHSV.h = globalHSV.h;
-            localHSV.s = globalHSV.s;
-            localHSV.v = globalHSV.v;
-
-            for(uint8_t i = 0; i < 64; i++) {
-                if(getLedColor(nextFrame + i) != RGB_COLOR_BLACK) {
-                    setLedColor((nextFrame + i), &localHSV);
-                }
-            }
-        }
-
-        waitForNextFrame(FRAMECOUNT_VALUE_VERY_FAST);
-    }
-
-    uint8_t k = 0;
-
-
-    for(; replay > 0; replay--)
-    {
-        for(uint8_t j = 0; j < 4; j++)
-        {
-            if(j == 0)
-            {
-                x_off = 0;
-                y_off = 0;
-            }
-            else if(j == 1)
-            {
-                x_off = 2;
-                y_off = 0;
-            }
-            else if(j == 2)
-            {
-                x_off = 2;
-                y_off = 2;
-            }
-            else if(j == 3)
-            {
-                x_off = 0;
-                y_off = 2;
-            }
-
-            for(uint8_t i = 0; i < 5; i++)
-            {
-                clearLEDCube();
-                switch(k)
-                {
-                /* Erste LED in einer Ecke aktivieren */
-                case 0:
-                    ledValue_Array[x][y][z](x_off,y_off,0,1);
-                    break;
-                /* kleinen Würfel mit 4 LEDs aktivieren */
-                case 1:
-                    for(uint8_t y = (0 + y_off / 2); y < (2 + y_off / 2); y++)
-                    {
-                        for(uint8_t x = (0 + x_off / 2); x < (2 + x_off / 2); x++)
-                        {
-                            ledValue_Array[x][y][z](x,y,0,1);
-                        }
-                    }
-                    copyLayer(Z_LAYER,BOTTOM,MITTE);
-                    break;
-                /* Würfelkanten aktivieren */
-                case 2:
-                    for(uint8_t y = 0; y < 3; y++)
-                    {
-                        for(uint8_t x = 0; x < 3; x++)
-                        {
-                            ledValue_Array[x][y][z](x,y,0,1);
-                        }
-                    }
-                    ledValue_Array[x][y][z](1,1,0,0);
-                    copyLayer(Z_LAYER,BOTTOM,TOP);
-                    for(uint8_t y = 0; y < 3; y++)
-                    {
-                        for(uint8_t x = 0; x < 3; x++)
-                        {
-                            ledValue_Array[x][y][z](x,y,1,1);
-                            x++;
-                        }
-                        y++;
-                    }
-                    waitForNextFrame(FRAMECOUNT_VALUE_MEDIUM);
-                    break;
-                }
-                waitForNextFrame(FRAMECOUNT_VALUE_MEDIUM);
-
-                /* Wenn Hälfte der Animation abgearbeitet, dann Rückwärts ablaufen */
-                if(i >= 2)
-                {
-                    k--;
-                }
-                else
-                {
-                    k++;
-                }
-            }
-            clearLEDCube();
-            waitForNextFrame(FRAMECOUNT_VALUE_MEDIUM);
-            k = 0;
-        }
-    }
-}
+//void cubeFraming(uint8_t replay)
+//{
+//    static uint8_t led_start = 0;
+//
+//    if(frameReady == 0) {
+//        if(animationState == 0) {
+//            counter = replay;
+//            clearLEDCube();
+//            animationState = 1;
+//            localHSV.h = globalHSV.h;
+//            localHSV.s = globalHSV.s;
+//            localHSV.v = globalHSV.v;
+//        }
+//
+//        switch(animationState) {
+//        case 1:
+//            /* Erste LED in einer Ecke aktivieren */
+//            setLedColor((nextFrame+led_start+0*16), &localHSV);
+//            animationState = 2;
+//            break;
+//        case 2:
+//            clearLEDCube();
+//            /* Würfel mit 8 LEDs aktivieren */
+//            for(uint8_t x = (0+(led_start%4)/2); x < (2+(led_start%4)/2); x++)
+//            {
+//                for(uint8_t y = (0+(led_start/4)/2); y < (2+(led_start/4)/2); y++)
+//                {
+//                    for(uint8_t z = 0; z < 2; z++)
+//                    {
+//                        setLedColor((nextFrame+x+y*4+z*16), &localHSV);
+//                    }
+//                }
+//            }
+//            animationState = 3;
+//            break;
+//        case 3:
+//            clearLEDCube();
+//            for(uint8_t y = 0; y < 3; y++)
+//            {
+//                for(uint8_t x = 0; x < 3; x++)
+//                {
+//                    setLedColor((nextFrame+x+y*4+0*16), &localHSV);
+//                }
+//            }
+//            setLedColor((nextFrame+1+1*4+z*16), &color_table[HSV_COLOR_BLACK]);
+//            copyLayer(Z_LAYER,BOTTOM,TOP-1);
+//            for(uint8_t y = 0; y < 3; y++)
+//            {
+//                for(uint8_t x = 0; x < 3; x++)
+//                {
+//                    setLedColor((nextFrame+x+y*4+1*16), &localHSV);
+//                    x++;
+//                }
+//                y++;
+//            }
+//            animationState = 4;
+//            break;
+//        }
+//
+//        if((globalHSV.h != localHSV.h) || (globalHSV.s != localHSV.s) || (globalHSV.v != localHSV.v)) {
+//            localHSV.h = globalHSV.h;
+//            localHSV.s = globalHSV.s;
+//            localHSV.v = globalHSV.v;
+//
+//            for(uint8_t i = 0; i < 64; i++) {
+//                if(getLedColor(nextFrame + i) != RGB_COLOR_BLACK) {
+//                    setLedColor((nextFrame + i), &localHSV);
+//                }
+//            }
+//        }
+//
+//        waitForNextFrame(FRAMECOUNT_VALUE_VERY_FAST);
+//    }
+//
+//    uint8_t k = 0;
+//
+//
+//    for(; replay > 0; replay--)
+//    {
+//        for(uint8_t j = 0; j < 4; j++)
+//        {
+//            if(j == 0)
+//            {
+//                x_off = 0;
+//                y_off = 0;
+//            }
+//            else if(j == 1)
+//            {
+//                x_off = 2;
+//                y_off = 0;
+//            }
+//            else if(j == 2)
+//            {
+//                x_off = 2;
+//                y_off = 2;
+//            }
+//            else if(j == 3)
+//            {
+//                x_off = 0;
+//                y_off = 2;
+//            }
+//
+//            for(uint8_t i = 0; i < 5; i++)
+//            {
+//                clearLEDCube();
+//                switch(k)
+//                {
+//                /* Erste LED in einer Ecke aktivieren */
+//                case 0:
+//                    ledValue_Array[x][y][z](x_off,y_off,0,1);
+//                    break;
+//                /* kleinen Würfel mit 4 LEDs aktivieren */
+//                case 1:
+//                    for(uint8_t y = (0 + y_off / 2); y < (2 + y_off / 2); y++)
+//                    {
+//                        for(uint8_t x = (0 + x_off / 2); x < (2 + x_off / 2); x++)
+//                        {
+//                            ledValue_Array[x][y][z](x,y,0,1);
+//                        }
+//                    }
+//                    copyLayer(Z_LAYER,BOTTOM,MITTE);
+//                    break;
+//                /* Würfelkanten aktivieren */
+//                case 2:
+//                    for(uint8_t y = 0; y < 3; y++)
+//                    {
+//                        for(uint8_t x = 0; x < 3; x++)
+//                        {
+//                            ledValue_Array[x][y][z](x,y,0,1);
+//                        }
+//                    }
+//                    ledValue_Array[x][y][z](1,1,0,0);
+//                    copyLayer(Z_LAYER,BOTTOM,TOP);
+//                    for(uint8_t y = 0; y < 3; y++)
+//                    {
+//                        for(uint8_t x = 0; x < 3; x++)
+//                        {
+//                            ledValue_Array[x][y][z](x,y,1,1);
+//                            x++;
+//                        }
+//                        y++;
+//                    }
+//                    waitForNextFrame(FRAMECOUNT_VALUE_MEDIUM);
+//                    break;
+//                }
+//                waitForNextFrame(FRAMECOUNT_VALUE_MEDIUM);
+//
+//                /* Wenn Hälfte der Animation abgearbeitet, dann Rückwärts ablaufen */
+//                if(i >= 2)
+//                {
+//                    k--;
+//                }
+//                else
+//                {
+//                    k++;
+//                }
+//            }
+//            clearLEDCube();
+//            waitForNextFrame(FRAMECOUNT_VALUE_MEDIUM);
+//            k = 0;
+//        }
+//    }
+//}
 
 ISR(TIMER0_COMP_vect)
 {
-    static uint8_t layer = 4;
+    static uint8_t layer = 0;
 
     //Update data for all columns
     for(uint8_t i = 0; i < 16; i++)
     {
-        Tlc5940_set(ledChannel_Array[i].r,(currentFrame+i+layer*16)->r);
-        Tlc5940_set(ledChannel_Array[i].g,(currentFrame+i+layer*16)->g);
-        Tlc5940_set(ledChannel_Array[i].b,(currentFrame+i+layer*16)->b);
+        Tlc5940_set(ledChannel_Array[i].r,(currentFrame+i+layer*16)->r / 16);
+        Tlc5940_set(ledChannel_Array[i].g,(currentFrame+i+layer*16)->g / 16);
+        Tlc5940_set(ledChannel_Array[i].b,(currentFrame+i+layer*16)->b / 16);
     }
 
     //shift new data into tlc
@@ -1223,7 +1234,7 @@ ISR(TIMER0_COMP_vect)
     {
         //Check if time for actual frame is exceeded and load next frame
         static uint8_t cntDown = 0;
-        if((frameReady) && (cntDown == 0)) {
+        if((frameReady != 0) && (cntDown == 0)) {
             volatile struct rgbLed *ptr = currentFrame;
             currentFrame = nextFrame;
             nextFrame = ptr;
