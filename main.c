@@ -207,7 +207,7 @@ static void playDemo(void) {
     case 11:
         if(fillCube_randomly(0) == 0)
         {
-            if(colorCNT == 14) {
+            if(colorCNT == COLOR_MAX_NUMBER) {
 #ifdef DEBUG
                 USART_puts("fillCubeDiagonal\n");
 #endif

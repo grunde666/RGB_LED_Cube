@@ -27,5 +27,44 @@ x	x	x	x
 
 
 
-x	x	x	x	
+x	x	x	x
 0			3
+
+frameReady: 0, aktueller Frame fertig abgespielt, neuer Frame wurde geladen
+	    1, nächster Frame steht bereit
+
+Animation ist abgeschlossen, wenn frameReady = 0 ist --> Zähler für die Anzeige des letzten Bildes kann ignoriert werden, da Aktualisierung nur vorgenommen wird, wenn Frame aktualisiert wird
+
+
+diagonalCube
+-  -  -  -	-  -  -  -	-  -  -  -	x  -  -  -	x  x  -  -	x  x  x  -	x  x  x  x
+
+-  -  -  -	-  -  -  -	x  -  -  -	x  x  -  -	x  x  x  -	x  x  x  x	x  x  x  x
+
+-  -  -  -	x  -  -  -	x  x  -  -	x  x  x  -	x  x  x  x	x  x  x  x	x  x  x  x
+
+x  -  -  -	x  x  -  -	x  x  x  -	x  x  x  x	x  x  x  x	x  x  x  x	x  x  x  x
+
+
+
+-  -  -		-  -  -		x  -  -		x  x  -		x  x  x
+
+-  -  -		x  -  -		x  x  -		x  x  x		x  x  x
+
+x  -  -		x  x  -		x  x  x		x  x  x		x  x  x
+
+
+00 01 02 03 04 05 06 07 
+a0 a0 a0 a0 a0 a0 a0 a0
+
+08 09 10 11 12 13 14 15
+a0 a0 a0 a0 b0 b0 b0 b0
+
+16 17 18 19 20 21 22 23
+b0 b0 b0 b0 b0 b0 b0 b0
+
+24 25 26 27 28 29 30 31 
+c0 c0 c0 c0 c0 c0 c0 c0
+
+32 33 34 35 36 37 38 39
+c0 c0 c0 c0 a1 a1 a1 a1

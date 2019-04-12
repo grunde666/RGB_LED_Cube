@@ -7,14 +7,22 @@
 #define Y_LAYER 1
 #define Z_LAYER 2
 
+#define COLOR_MAX_NUMBER    14
+
+#define LED_ROWS_NUMBER     4
+#define LED_COLUMNS_NUMBER  4
+#define LED_LAYERS_NUMBER   4
+#define LED_NUMBER_LAYER    (LED_ROWS_NUMBER * LED_COLUMNS_NUMBER)
+#define LED_NUMBER_MAX      (LED_LAYERS_NUMBER * LED_NUMBER_LAYER)
+
 #define BOTTOM  0
-#define TOP     3
+#define TOP     (LED_LAYERS_NUMBER-1)
 
 #define LEFT    0
-#define RIGHT   3
+#define RIGHT   (LED_COLUMNS_NUMBER-1)
 
 #define BACK    0
-#define FRONT   3
+#define FRONT   (LED_ROWS_NUMBER-1)
 
 enum rgb_color_type
 {
@@ -60,7 +68,7 @@ enum hsv_color_type
     uint8_t v;
  };
 
-extern const struct hsv color_table[14];
+extern const struct hsv color_table[COLOR_MAX_NUMBER];
 extern struct hsv globalHSV;
 extern volatile struct rgbLed *currentFrame;
 extern volatile struct rgbLed *nextFrame;

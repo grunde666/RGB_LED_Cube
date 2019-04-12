@@ -2,9 +2,9 @@
 #include "tlc5940.h"
 
 static void fillFrame(const struct hsv *newColor){
-	for (uint8_t z=0; z<4; z++){
-		for (uint8_t y=0; y<4; y++){
-            for (uint8_t x=0; x<4; x++){
+	for (uint8_t z=0; z<LED_LAYERS_NUMBER; z++){
+		for (uint8_t y=0; y<LED_COLUMNS_NUMBER; y++){
+            for (uint8_t x=0; x<LED_ROWS_NUMBER; x++){
                 setLedColor((nextFrame+x+y*4+z*16), newColor);
             }
 		}
@@ -22,9 +22,9 @@ void clearLEDCube(void)
 }
 
 void copyFrame(){
-	for (uint8_t z=0; z<4; z++){
-		for (uint8_t y=0; y<4; y++){
-            for(uint8_t x=0; x<4; x++) {
+	for (uint8_t z=0; z<LED_LAYERS_NUMBER; z++){
+		for (uint8_t y=0; y<LED_COLUMNS_NUMBER; y++){
+            for(uint8_t x=0; x<LED_ROWS_NUMBER; x++) {
                 (nextFrame+x+y*4+z*16)->r = (currentFrame+x+y*4+z*16)->r;
                 (nextFrame+x+y*4+z*16)->g = (currentFrame+x+y*4+z*16)->g;
                 (nextFrame+x+y*4+z*16)->b = (currentFrame+x+y*4+z*16)->b;
@@ -35,9 +35,9 @@ void copyFrame(){
 
 // Schiebt den Inhalt um eine Position nach vorne, Einfügen von Nullen hinten
 void shiftForward(){
-	for (uint8_t z=0; z<4; z++){
-        for(uint8_t x=0; x<4; x++){
-            for (uint8_t y=1; y<4; y++){
+	for (uint8_t z=0; z<LED_LAYERS_NUMBER; z++){
+        for(uint8_t x=0; x<LED_ROWS_NUMBER; x++){
+            for (uint8_t y=1; y<LED_COLUMNS_NUMBER; y++){
                 (nextFrame+x+y*4+z*16)->r = (currentFrame+x+(y-1)*4+z*16)->r;
                 (nextFrame+x+y*4+z*16)->g = (currentFrame+x+(y-1)*4+z*16)->g;
                 (nextFrame+x+y*4+z*16)->b = (currentFrame+x+(y-1)*4+z*16)->b;
@@ -51,9 +51,9 @@ void shiftForward(){
 
 // Schiebt den Inhalt um eine Position nach hinten, Einfügen von Nullen vorne
 void shiftBackward(){
-	for (uint8_t z=0; z<4; z++){
-        for(uint8_t x=0; x<4; x++){
-            for (uint8_t y=0; y<3; y++){
+	for (uint8_t z=0; z<LED_LAYERS_NUMBER; z++){
+        for(uint8_t x=0; x<LED_ROWS_NUMBER; x++){
+            for (uint8_t y=0; y<(LED_COLUMNS_NUMBER-1); y++){
                 (nextFrame+x+y*4+z*16)->r = (currentFrame+x+(y+1)*4+z*16)->r;
                 (nextFrame+x+y*4+z*16)->g = (currentFrame+x+(y+1)*4+z*16)->g;
                 (nextFrame+x+y*4+z*16)->b = (currentFrame+x+(y+1)*4+z*16)->b;
@@ -67,9 +67,9 @@ void shiftBackward(){
 
 // Schiebt den Inhalt um eine Position nach unten, Einfügen von Nullen oben
 void shiftDownward(){
-	for(uint8_t y=0; y<4; y++){
-	    for(uint8_t x=0; x<4; x++){
-            for(uint8_t z=0; z<3; z++){
+	for(uint8_t y=0; y<LED_COLUMNS_NUMBER; y++){
+	    for(uint8_t x=0; x<LED_ROWS_NUMBER; x++){
+            for(uint8_t z=0; z<(LED_LAYERS_NUMBER-1); z++){
                 (nextFrame+x+y*4+z*16)->r = (currentFrame+x+y*4+(z+1)*16)->r;
                 (nextFrame+x+y*4+z*16)->g = (currentFrame+x+y*4+(z+1)*16)->g;
                 (nextFrame+x+y*4+z*16)->b = (currentFrame+x+y*4+(z+1)*16)->b;
@@ -83,12 +83,12 @@ void shiftDownward(){
 
 // Schiebt den Inhalt um eine Position nach oben, Einfügen von Nullen unten
 void shiftUpward(){
-	for(uint8_t y=0; y<4; y++){
-        for(uint8_t x=0; x<4; x++){
-            for(uint8_t z=0; z<3; z++){
-                (nextFrame+x+y*4+(z+1)*16)->r = (currentFrame+x+y*4+z*16)->r;
-                (nextFrame+x+y*4+(z+1)*16)->g = (currentFrame+x+y*4+z*16)->g;
-                (nextFrame+x+y*4+(z+1)*16)->b = (currentFrame+x+y*4+z*16)->b;
+	for(uint8_t y=0; y<LED_COLUMNS_NUMBER; y++){
+        for(uint8_t x=0; x<LED_ROWS_NUMBER; x++){
+            for(uint8_t z=1; z<LED_LAYERS_NUMBER; z++){
+                (nextFrame+x+y*4+z*16)->r = (currentFrame+x+y*4+(z-1)*16)->r;
+                (nextFrame+x+y*4+z*16)->g = (currentFrame+x+y*4+(z-1)*16)->g;
+                (nextFrame+x+y*4+z*16)->b = (currentFrame+x+y*4+(z-1)*16)->b;
             }
             (nextFrame+x+y*4+0*16)->r = 0;
             (nextFrame+x+y*4+0*16)->g = 0;
@@ -99,12 +99,12 @@ void shiftUpward(){
 
 // Schiebt den Inhalt um eine Position nach links
 void shiftLeft(){
-	for (uint8_t z=0; z<4; z++){
-		for (uint8_t y=0; y<4; y++){
-            for (uint8_t x=0; x<3; x++){
-                (nextFrame+x+y*4+z*16)->r = (currentFrame+x+1+y*4+z*16)->r;
-                (nextFrame+x+y*4+z*16)->g = (currentFrame+x+1+y*4+z*16)->g;
-                (nextFrame+x+y*4+z*16)->b = (currentFrame+x+1+y*4+z*16)->b;
+	for (uint8_t z=0; z<LED_LAYERS_NUMBER; z++){
+		for (uint8_t y=0; y<LED_COLUMNS_NUMBER; y++){
+            for (uint8_t x=0; x<(LED_ROWS_NUMBER-1); x++){
+                (nextFrame+x+y*4+z*16)->r = (currentFrame+(x+1)+y*4+z*16)->r;
+                (nextFrame+x+y*4+z*16)->g = (currentFrame+(x+1)+y*4+z*16)->g;
+                (nextFrame+x+y*4+z*16)->b = (currentFrame+(x+1)+y*4+z*16)->b;
             }
             (nextFrame+3+y*4+z*16)->r = 0;
             (nextFrame+3+y*4+z*16)->g = 0;
@@ -115,12 +115,12 @@ void shiftLeft(){
 
 // Schiebt den Inhalt um eine Position nach rechts
 void shiftRight(){
-	for (uint8_t z=0; z<4; z++){
-		for (uint8_t y=0; y<4; y++){
-            for (uint8_t x=1; x<4; x++){
-                (nextFrame+x+y*4+z*16)->r = (currentFrame+x-1+y*4+z*16)->r;
-                (nextFrame+x+y*4+z*16)->g = (currentFrame+x-1+y*4+z*16)->g;
-                (nextFrame+x+y*4+z*16)->b = (currentFrame+x-1+y*4+z*16)->b;
+	for (uint8_t z=0; z<LED_LAYERS_NUMBER; z++){
+		for (uint8_t y=0; y<LED_COLUMNS_NUMBER; y++){
+            for (uint8_t x=1; x<LED_ROWS_NUMBER; x++){
+                (nextFrame+x+y*4+z*16)->r = (currentFrame+(x-1)+y*4+z*16)->r;
+                (nextFrame+x+y*4+z*16)->g = (currentFrame+(x-1)+y*4+z*16)->g;
+                (nextFrame+x+y*4+z*16)->b = (currentFrame+(x-1)+y*4+z*16)->b;
             }
             (nextFrame+0+y*4+z*16)->r = 0;
             (nextFrame+0+y*4+z*16)->g = 0;
@@ -133,9 +133,9 @@ void copyLayer(uint8_t layerType, uint8_t originLayer, uint8_t destinationLayer)
 {
     if(layerType == X_LAYER)
     {
-        for(uint8_t z = 0; z < 4; z++)
+        for(uint8_t z = 0; z < LED_LAYERS_NUMBER; z++)
         {
-            for(uint8_t y = 0; y < 4; y++)
+            for(uint8_t y = 0; y < LED_COLUMNS_NUMBER; y++)
             {
                 (nextFrame+destinationLayer+y*4+z*16)->r = (nextFrame+originLayer+y*4+z*16)->r;
                 (nextFrame+destinationLayer+y*4+z*16)->g = (nextFrame+originLayer+y*4+z*16)->g;
@@ -145,9 +145,9 @@ void copyLayer(uint8_t layerType, uint8_t originLayer, uint8_t destinationLayer)
     }
     else if(layerType == Y_LAYER)
     {
-        for(uint8_t z = 0; z < 4; z++)
+        for(uint8_t z = 0; z < LED_LAYERS_NUMBER; z++)
         {
-            for(uint8_t x = 0; x < 4; x++)
+            for(uint8_t x = 0; x < LED_ROWS_NUMBER; x++)
             {
                 (nextFrame+x+destinationLayer*4+z*16)->r = (nextFrame+x+originLayer*4+z*16)->r;
                 (nextFrame+x+destinationLayer*4+z*16)->g = (nextFrame+x+originLayer*4+z*16)->g;
@@ -157,9 +157,9 @@ void copyLayer(uint8_t layerType, uint8_t originLayer, uint8_t destinationLayer)
     }
     else if(layerType == Z_LAYER)
     {
-        for(uint8_t y = 0; y < 4; y++)
+        for(uint8_t y = 0; y < LED_COLUMNS_NUMBER; y++)
         {
-            for(uint8_t x = 0; x < 4; x++)
+            for(uint8_t x = 0; x < LED_ROWS_NUMBER; x++)
             {
                 (nextFrame+x+y*4+destinationLayer*16)->r = (nextFrame+x+y*4+originLayer*16)->r;
                 (nextFrame+x+y*4+destinationLayer*16)->g = (nextFrame+x+y*4+originLayer*16)->g;
@@ -174,9 +174,9 @@ void fillLayer(uint8_t layerType, uint8_t layerNumber, struct hsv *newColor)
     if(layerType == X_LAYER)
     {
         // x-Ebene wird gefüllt
-        for(uint8_t z = 0; z < 4; z++)
+        for(uint8_t z = 0; z < LED_LAYERS_NUMBER; z++)
         {
-            for(uint8_t y = 0; y < 4; y++)
+            for(uint8_t y = 0; y < LED_COLUMNS_NUMBER; y++)
             {
                 setLedColor((nextFrame+layerNumber+y*4+z*16), newColor);
             }
@@ -185,9 +185,9 @@ void fillLayer(uint8_t layerType, uint8_t layerNumber, struct hsv *newColor)
     else if(layerType == Y_LAYER)
     {
         // y-Ebene wird gefüllt
-        for(uint8_t z = 0; z < 4; z++)
+        for(uint8_t z = 0; z < LED_LAYERS_NUMBER; z++)
         {
-            for(uint8_t x = 0; x < 4; x++)
+            for(uint8_t x = 0; x < LED_ROWS_NUMBER; x++)
             {
                 setLedColor((nextFrame+x+layerNumber*4+z*16), newColor);
             }
@@ -196,9 +196,9 @@ void fillLayer(uint8_t layerType, uint8_t layerNumber, struct hsv *newColor)
     else if(layerType == Z_LAYER)
     {
         //z-Ebene wird gefüllt
-        for(uint8_t y = 0; y < 4; y++)
+        for(uint8_t y = 0; y < LED_COLUMNS_NUMBER; y++)
         {
-            for(uint8_t x = 0; x < 4; x++)
+            for(uint8_t x = 0; x < LED_ROWS_NUMBER; x++)
             {
                 setLedColor((nextFrame+x+y*4+layerNumber*16), newColor);
             }
@@ -211,9 +211,9 @@ void clearLayer(uint8_t layerType, uint8_t layerNumber)
     if(layerType == X_LAYER)
     {
         // x-Ebene wird geleert
-        for(uint8_t z = 0; z < 4; z++)
+        for(uint8_t z = 0; z < LED_LAYERS_NUMBER; z++)
         {
-            for(uint8_t y = 0; y < 4; y++)
+            for(uint8_t y = 0; y < LED_COLUMNS_NUMBER; y++)
             {
                 setLedColor((nextFrame+layerNumber+y*4+z*16), &color_table[HSV_COLOR_BLACK]);
             }
@@ -222,9 +222,9 @@ void clearLayer(uint8_t layerType, uint8_t layerNumber)
     else if(layerType == Y_LAYER)
     {
         // y-Ebene wird geleert
-        for(uint8_t z = 0; z < 4; z++)
+        for(uint8_t z = 0; z < LED_LAYERS_NUMBER; z++)
         {
-            for(uint8_t x = 0; x < 4; x++)
+            for(uint8_t x = 0; x < LED_ROWS_NUMBER; x++)
             {
                 setLedColor((nextFrame+x+layerNumber*4+z*16), &color_table[HSV_COLOR_BLACK]);
             }
@@ -233,9 +233,9 @@ void clearLayer(uint8_t layerType, uint8_t layerNumber)
     else if(layerType == Z_LAYER)
     {
         //z-Ebene wird geleert
-        for(uint8_t y = 0; y < 4; y++)
+        for(uint8_t y = 0; y < LED_COLUMNS_NUMBER; y++)
         {
-            for(uint8_t x = 0; x < 4; x++)
+            for(uint8_t x = 0; x < LED_ROWS_NUMBER; x++)
             {
                 setLedColor((nextFrame+x+y*4+layerNumber*16), &color_table[HSV_COLOR_BLACK]);
             }
