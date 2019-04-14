@@ -14,7 +14,7 @@
 
 
 /*
- * Timer0 updates tlc5940 led driver every 512 µs --> display whole frame takes 2.048 ms
+ * Timer0 updates tlc5940 led driver every 512 us --> display whole frame takes 2.048 ms
  * Update function needs led array with pwm value of every color part (rgb)
  * Color can be set by user via remote control
  *
@@ -45,9 +45,9 @@ static uint8_t animationState = 0;
 const struct hsv color_table[COLOR_MAX_NUMBER] =
 {
     {0,255,255}, {21,255,255}, {42,255,255}, {192,255,255},
-    {0,0,0}, {171,255,255}, {0,0,255}, {85,255,255},
-    {128,255,255}, {213,255,255}, {107,255,255}, {149,255,255},
-    {64,255,255}, {235,255,255}
+    {171,255,255}, {0,0,255}, {85,255,255}, {128,255,255},
+    {213,255,255}, {107,255,255}, {149,255,255}, {64,255,255},
+    {235,255,255}, {0,0,0}
 };
 
 // struct of led pinning
@@ -83,16 +83,8 @@ const uint16_t gamma_table[256] = {
 static void waitForNextFrame(uint8_t counter) {
     cli();
 	frameReady = 1;
-	frameCnt = counter;
+	frameCnt = (counter-1);
 	sei();
-
-//#ifdef DEBUG
-//	USART_puts("load next Frame...\t");
-//	USART_puts("counter = ");
-//	USART_putc(counter/10+48);
-//	USART_putc(counter%10+48);
-//	USART_putc('\n');
-//#endif
 }
 
 uint8_t getLedColor(volatile struct rgbLed *led)
@@ -195,6 +187,7 @@ uint8_t everyLED(void)
     case 0:
     //First step: clear whole cube
         clearLEDCube();
+        lednumber = 0;
         animationState = 1;
         localHSV.h = globalHSV.h;
         localHSV.s = globalHSV.s;
@@ -224,7 +217,6 @@ uint8_t everyLED(void)
             //If all leds are active, end animation
             if (lednumber == LED_NUMBER_MAX) {
                 animationState = 0;
-                lednumber = 0;
             }
         }
         break;
@@ -242,7 +234,7 @@ uint8_t rainfall(uint8_t replay){
 
     switch(animationState) {
     case 0:
-        srand(20);
+        InitRandomGenerator();
         clearLEDCube();
         counter = replay;
         localHSV.h = globalHSV.h;
@@ -253,7 +245,7 @@ uint8_t rainfall(uint8_t replay){
     case 1:
         shiftDownward();
         //Maximum of 4 Leds at the same time
-        for(uint8_t ct = rand() % 3 + 1; ct > 0; ct--){
+        for(uint8_t ct = rand() % 2 + 1; ct > 0; ct--){
             do{
                 lednumber = rand() % LED_NUMBER_LAYER;
                 //Look for active led in column
@@ -303,7 +295,7 @@ uint8_t rainfall(uint8_t replay){
         }
     }
 
-    waitForNextFrame(FRAMECOUNT_VALUE_FAST);
+    waitForNextFrame(FRAMECOUNT_VALUE_MEDIUM);
 
     return animationState;
 }
@@ -350,10 +342,8 @@ uint8_t randomLedColorCube(uint8_t replay) {
         for(uint8_t i = 0; i < LED_NUMBER_MAX; i++)
         {
             uint8_t color = 0;
-            color = rand() % COLOR_MAX_NUMBER;
-            if(color == HSV_COLOR_BLACK) {
-                color++;
-            }
+            color = rand() % (COLOR_MAX_NUMBER-1);
+
             localHSV.h = color_table[color].h;
             localHSV.s = color_table[color].s;
             localHSV.v = color_table[color].v;
@@ -634,9 +624,8 @@ uint8_t activateRandomLED(uint8_t replay)
 
     if(animationState == 0) {
         /* Intializes random number generator */
-        srand(5);
+        InitRandomGenerator();
         counter = replay;
-        clearLEDCube();
         animationState = 1;
         localHSV.h = globalHSV.h;
         localHSV.s = globalHSV.s;
@@ -645,7 +634,7 @@ uint8_t activateRandomLED(uint8_t replay)
 
     switch(animationState) {
     case 1:
-        copyFrame();
+        clearLEDCube();
         ledNumber = rand() % LED_NUMBER_MAX;
         setLedColor((nextFrame+ledNumber), &localHSV);
         animationState = 2;
@@ -687,7 +676,7 @@ uint8_t fillCube_randomly(uint8_t replay)
 
     if(animationState == 0) {
         /* Intializes random number generator */
-        srand(9);
+        InitRandomGenerator();
         counter = replay;
         animationState = 1;
     }
@@ -702,12 +691,12 @@ uint8_t fillCube_randomly(uint8_t replay)
         animationState = 2;
         break;
     case 2:
+        copyFrame();
         do{
             ledNumber = rand() % LED_NUMBER_MAX;
 
             if(getLedColor(nextFrame+ledNumber) == RGB_COLOR_BLACK)
             {
-                copyFrame();
                 setLedColor((nextFrame+ledNumber), &localHSV);
                 activeLEDs++;
                 if(activeLEDs == LED_NUMBER_MAX) {
@@ -749,7 +738,7 @@ uint8_t clearCube_randomly(uint8_t replay)
 
     if(animationState == 0) {
         /* Intializes random number generator */
-        srand(5);
+        InitRandomGenerator();
         counter = replay;
         animationState = 1;
     }
@@ -764,12 +753,12 @@ uint8_t clearCube_randomly(uint8_t replay)
         animationState = 2;
         break;
     case 2:
+        copyFrame();
         do{
             ledNumber = rand() % LED_NUMBER_MAX;
 
             if(getLedColor(nextFrame+ledNumber) != RGB_COLOR_BLACK)
             {
-                copyFrame();
                 setLedColor((nextFrame+ledNumber), &color_table[HSV_COLOR_BLACK]);
                 activeLEDs++;
                 if(activeLEDs == LED_NUMBER_MAX) {
@@ -808,12 +797,12 @@ uint8_t clearCube_randomly(uint8_t replay)
 uint8_t dropLedTopDown(uint8_t replay)
 {
     static uint8_t ledNumber = 0;
-    static uint8_t lastLED = 0;
+    static uint8_t lastLED = 16;
 
     if(animationState == 0) {
         /* Intializes random number generator */
-        srand(32);
-        counter = replay * 3;
+        InitRandomGenerator();
+        counter = replay;
         animationState = 1;
     }
 
@@ -823,6 +812,8 @@ uint8_t dropLedTopDown(uint8_t replay)
         localHSV.s = globalHSV.s;
         localHSV.v = globalHSV.v;
         clearLEDCube();
+        lastLED = 16;
+        ledNumber = 0;
         /* Obere Ebene anschalten */
         fillLayer(Z_LAYER,TOP,&localHSV);
         animationState = 2;
@@ -835,20 +826,15 @@ uint8_t dropLedTopDown(uint8_t replay)
 
             if(ledNumber != lastLED)
             {
-                /* Erst abwarten, bis genügend LEDs in die untere Ebene gewandert sind
-                 * Bevor LEDs von unten nach oben wandern
-                 * Zufall entscheiden lassen, ob LED hoch oder runter wandern soll
-                 */
-                if((counter > 9) && (rand() % 2))
+                /* Zufall entscheiden lassen, ob LED hoch oder runter wandern soll */
+                if(rand() % 2)
                 {
                     /* Falls LED ganz unten ist, dann hochschieben */
                     if(getLedColor(nextFrame+ledNumber+BOTTOM*16) != RGB_COLOR_BLACK)
                     {
-                        counter--;
                         setLedColor((nextFrame+ledNumber+BOTTOM*16), &color_table[HSV_COLOR_BLACK]);
                         setLedColor((nextFrame+ledNumber+(BOTTOM+1)*16), &localHSV);
                         animationState = 3;
-                        break;
                     }
                 }
                 else
@@ -856,16 +842,14 @@ uint8_t dropLedTopDown(uint8_t replay)
                     /* Falls LED ganz oben ist, dann runterfallen lassen */
                     if(getLedColor(nextFrame+ledNumber+TOP*16) != RGB_COLOR_BLACK)
                     {
-                        counter--;
                         setLedColor((nextFrame+ledNumber+TOP*16), &color_table[HSV_COLOR_BLACK]);
                         setLedColor((nextFrame+ledNumber+(TOP-1)*16), &localHSV);
                         animationState = 5;
-                        break;
                     }
                 }
             }
-            lastLED = ledNumber;
-        }while(1);
+        }while(animationState == 2);
+        lastLED = ledNumber;
         break;
     case 3:
         copyFrame();
@@ -883,6 +867,7 @@ uint8_t dropLedTopDown(uint8_t replay)
         }
         else {
             animationState = 2;
+            counter--;
         }
         break;
     case 5:
@@ -901,6 +886,7 @@ uint8_t dropLedTopDown(uint8_t replay)
         }
         else {
             animationState = 2;
+            counter--;
         }
         break;
     }

@@ -5,7 +5,7 @@ Falls User über Fernbedienung Helligkeit oder Farbe ändert, dann werden alle a
 
 Eigenschaften der Fernbedienung:
 - LED-Cube ein/aus			--> wird in main behandelt
-- Helligkeit einstellen			--> Änderung in globaler Variable globalHSV.v
+- Helligkeit einstellen		--> Änderung in globaler Variable globalHSV.v
 - Farbe einstellen			--> Änderung in globaler Variable globalsHSV.h/s
 - Geschwindigkeit der Animation ändern	--> Änderung in globaler Variable
 - Bestimmte Animation einstellen	--> wird in main behandelt
@@ -13,6 +13,16 @@ Eigenschaften der Fernbedienung:
 Animationen:
 - everyLED: aktiviert nacheinander alle LEDs --> Hauptsächlich für Testzwecke
 - rainfall: regenähnliche Animation in einer Farbe
+- fillCubeDiagonal:
+- activateRandomLED:	650 Frames = 130 unterschiedliche Frames *  5 gleiche Frames
+- fillCube_randomly:	650 Frames =  65 unterschiedliche Frames * 10 gleiche Frames
+- clearCube_randomly:	650 Frames =  65 unterschiedliche Frames * 10 gleiche Frames
+- dropLedTopDown:
+- fadeColorCube:
+- floatingXLayer:
+- floatingYLayer:
+- floatingZLayer:
+- randomLedColorCube:
 
 
 x	x	x	x
@@ -68,3 +78,5 @@ c0 c0 c0 c0 c0 c0 c0 c0
 
 32 33 34 35 36 37 38 39
 c0 c0 c0 c0 a1 a1 a1 a1
+
+

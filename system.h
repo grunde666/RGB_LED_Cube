@@ -19,6 +19,8 @@
 #define SetLayer4()     PORTC = (1 << LAYER_4_PIN)
 #define ClearLayer4()   PORTC &= ~(1 << LAYER_4_PIN)
 
+void InitADC(void);
+void InitRandomGenerator(void);
 void intToASCII(uint8_t src, char* dest);
 void InitLayerPins(void);
 
