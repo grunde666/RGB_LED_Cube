@@ -13,9 +13,11 @@ volatile uint16_t gs_cnt;
 /* Timer 0 - Frame Updater */
 void Timer0_Init(void)
 {
-    // ((16000000/256)/400) = 156
+    // ~4kHz for sampling of IR sensor
+    // ~2kHz for update of led driver data
+    // ((16000000/256)/3906) = 16
     TCCR0 |= (1 << WGM01); //CTC mode
-    OCR0 = 32 - 1;
+    OCR0 = 16 - 1;
     TIMSK |= (1 << OCIE0);
     TCCR0 |= (1 << CS02) | (1 << CS00); // prescaler = 256
 }
@@ -39,15 +41,6 @@ void Timer1_Init(void)
     OCR1A = 1;              // duty factor on OC1A, XLAT is inside BLANK
     OCR1B = 2;              // duty factor on BLANK (larger than OCR1A (XLAT))
     ICR1 = TLC_PWM_PERIOD;  // see tlc_config.h
-}
-
-ISR(TIMER2_OVF_vect)
-{
-//    if(msCount<50)
-//    {
-//        msCount++;
-//    }
-    TCNT2 = 5;		// Nachladen
 }
 
 ISR(TIMER1_OVF_vect)

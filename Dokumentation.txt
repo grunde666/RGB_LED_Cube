@@ -80,3 +80,13 @@ c0 c0 c0 c0 c0 c0 c0 c0
 c0 c0 c0 c0 a1 a1 a1 a1
 
 
+IR-Remote
+
+Höchste Datenfrequenz liegt bei 875 Hz
+Samplingfrequenz ist 3906 Hz 
+
+Start of Frame: 9ms LOW + 4,5 ms HIGH
+
+Keycode Powertaste 0x00F7C03F
+Keycode warm/weiß  0x00F740BF
+

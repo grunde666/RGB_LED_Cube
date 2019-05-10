@@ -3,6 +3,6 @@
 #include "system.h"
 
 void NEC_Init(void);
-uint32_t NEC_CheckInput(void);
+void NEC_CheckInput (void);
 
 #endif // NEC_H_INCLUDED
