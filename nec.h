@@ -3,6 +3,8 @@
 #include "system.h"
 
 void NEC_Init(void);
-void NEC_CheckInput (void);
+unsigned long NEC_CheckInput(void);
+
+extern volatile uint8_t necTriggerFlag;
 
 #endif // NEC_H_INCLUDED

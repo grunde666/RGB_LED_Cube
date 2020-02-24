@@ -8,7 +8,7 @@
                          // Ohne ergeben sich unten Fehler in der Berechnung
 #endif
 
-#define BAUD 19200UL      // Baudrate
+#define BAUD 56000UL      // Baudrate
 
 // Berechnungen
 #define UBRR_VAL ((F_CPU+BAUD*8)/(BAUD*16)-1)   // clever runden

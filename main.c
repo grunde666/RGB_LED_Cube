@@ -19,7 +19,9 @@
 #include "animations.h"
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <inttypes.h>
 
 #include "transformation.h"
 #include "definitions.h"
@@ -29,107 +31,93 @@ static void playDemo(void);
 
 int main()
 {
-//    struct rc5_data rc5_buf;
-//    uint32_t keyCode = 0;
-//    unsigned int keyCode_low = 0;
-//    unsigned int keyCode_high = 0;
-    uint8_t currentColor = HSV_COLOR_MAGENTA;
+    unsigned long int keyCode = 0;
+//    uint8_t currentColor = HSV_COLOR_MAGENTA;
 #ifdef DEBUG
-    char debug_str[12]="";
+    char debug_str[20]="";
     USART_Init();
 #endif
-    InitLayerPins();
+//    InitLayerPins();
 
-//    rc5_init();
-//    NEC_Init();
-    InitADC();
+    NEC_Init();
+//    InitADC();
     Timer0_Init();
-    Tlc5940_Init();
+//    Tlc5940_Init();
     sei();
     USART_puts("start application...\n");
 
-    uint8_t actualProgram = 0;
-
-    globalHSV.h = color_table[currentColor].h;
-    globalHSV.s = color_table[currentColor].s;
-    globalHSV.v = color_table[currentColor].v;
+//    uint8_t actualProgram = 0;
+//
+//    globalHSV.h = color_table[currentColor].h;
+//    globalHSV.s = color_table[currentColor].s;
+//    globalHSV.v = color_table[currentColor].v;
 
     while(1)
     {
-        if(frameReady == 0) {
-            switch(actualProgram) {
-            case 0:
-                playDemo();
-                break;
-            case 1:
-    //            fillLEDCube(0,0);
-                break;
-            case 2:
-    //            dimmingCube();
-                break;
-            case 3:
-    //            playAllColors();
-                break;
+//        if(frameReady == 0) {
+//            switch(actualProgram) {
+//            case 0:
+//                playDemo();
+//                break;
+//            case 1:
+//    //            fillLEDCube(0,0);
+//                break;
+//            case 2:
+//    //            dimmingCube();
+//                break;
+//            case 3:
+//    //            playAllColors();
+//                break;
+//            }
+//        }
+//
+//        if(uart_str_complete) {
+//            if(uart_string[0] == 'c') {
+//                if(uart_string[1] == '+') {
+//                    if(currentColor == 12) {
+//                        currentColor = 0;
+//                    }
+//                    else {
+//                        currentColor++;
+//                    }
+//                    globalHSV.h = color_table[currentColor].h;
+//                    globalHSV.s = color_table[currentColor].s;
+//                }
+//                else if(uart_string[1] == '-') {
+//                    if(currentColor == 0) {
+//                        currentColor = 12;
+//                    }
+//                    else {
+//                        currentColor--;
+//                    }
+//                    globalHSV.h = color_table[currentColor].h;
+//                    globalHSV.s = color_table[currentColor].s;
+//                }
+//            }
+//            else if(uart_string[0] == 'h') {
+//                if(uart_string[1] == '-') {
+//                    globalHSV.v = globalHSV.v - 25;
+//                }
+//                else if(uart_string[1] == '+') {
+//                    globalHSV.v = globalHSV.v + 25;
+//                }
+//            }
+//            uart_str_complete = 0;
+//        }
+
+        if(necTriggerFlag)
+        {
+            necTriggerFlag = 0;
+            keyCode = NEC_CheckInput();
+
+            if(keyCode != 0)
+            {
+                sprintf(debug_str, "%08lx", keyCode);
+                USART_puts("0x");
+                USART_puts(debug_str);
+                USART_putc('\n');
             }
         }
-
-        if(uart_str_complete) {
-            if(uart_string[0] == 'c') {
-                if(uart_string[1] == '+') {
-                    if(currentColor == 12) {
-                        currentColor = 0;
-                    }
-                    else {
-                        currentColor++;
-                    }
-                    globalHSV.h = color_table[currentColor].h;
-                    globalHSV.s = color_table[currentColor].s;
-                }
-                else if(uart_string[1] == '-') {
-                    if(currentColor == 0) {
-                        currentColor = 12;
-                    }
-                    else {
-                        currentColor--;
-                    }
-                    globalHSV.h = color_table[currentColor].h;
-                    globalHSV.s = color_table[currentColor].s;
-                }
-            }
-            else if(uart_string[0] == 'h') {
-                if(uart_string[1] == '-') {
-                    globalHSV.v = globalHSV.v - 25;
-                }
-                else if(uart_string[1] == '+') {
-                    globalHSV.v = globalHSV.v + 25;
-                }
-            }
-            uart_str_complete = 0;
-        }
-
-//        keyCode = NEC_CheckInput();
-//
-//        if(keyCode != 0)
-//        {
-//            keyCode_low = keyCode & 0xFFFF;
-//            keyCode_high = keyCode >> 16;
-//            sprintf(debug_str, "%x", keyCode_high);
-//            USART_puts(" 0x");
-//            USART_puts(debug_str);
-//            sprintf(debug_str, "%x", keyCode_low);
-//            USART_puts(debug_str);
-//            USART_putc('\n');
-//        }
-//        if(rc5_recv(&rc5_buf))
-//        {
-//            intToASCII(rc5_buf.address, &debug_str[0]);
-//            USART_puts(&debug_str[0]);
-//            USART_putc('\t');
-//
-//            intToASCII(rc5_buf.command, &debug_str[0]);
-//            USART_puts(&debug_str[0]);
-//            USART_putc('\n');
-//        }
     }
 
     return 0;

@@ -15,11 +15,11 @@ void Timer0_Init(void)
 {
     // ~4kHz for sampling of IR sensor
     // ~2kHz for update of led driver data
-    // ((16000000/256)/3906) = 16
+    // ((16000000/64)/62) = 4000 Hz
     TCCR0 |= (1 << WGM01); //CTC mode
-    OCR0 = 16 - 1;
+    OCR0 = 62 - 1;
     TIMSK |= (1 << OCIE0);
-    TCCR0 |= (1 << CS02) | (1 << CS00); // prescaler = 256
+    TCCR0 |= (1 << CS01) | (1 << CS00); // prescaler = 64
 }
 
 /* Timer 2 - GSCLK */
