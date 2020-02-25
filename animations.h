@@ -72,10 +72,11 @@ extern const struct hsv color_table[COLOR_MAX_NUMBER];
 extern struct hsv globalHSV;
 extern volatile struct rgbLed *currentFrame;
 extern volatile struct rgbLed *nextFrame;
+extern volatile uint8_t updateLayerTriggerFlag;
 extern volatile uint8_t frameReady;
 
-uint8_t getLedColor(volatile struct rgbLed *led);
 void setLedColor(volatile struct rgbLed *led, const struct hsv *newHSV);
+void updateLayer(void);
 
 uint8_t fadeColorCube(uint8_t replay);
 uint8_t rainfall(uint8_t replay);

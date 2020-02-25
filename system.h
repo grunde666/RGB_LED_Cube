@@ -21,9 +21,10 @@
 
 typedef enum
 {
-    MAIN_STATE_POWER_DOWN  = 0,
-    MAIN_STATE_PLAY_DEMO   = 1,
-    MAIN_STATE_STEADY_CUBE = 2,
+    MAIN_STATE_POWER_DOWN       = 0,
+    MAIN_STATE_PLAY_DEMO        = 1,
+    MAIN_STATE_MONOCHROME_CUBE  = 2,
+    MAIN_STATE_RGB_FADING       = 3
 }mainState_t;
 
 void InitADC(void);

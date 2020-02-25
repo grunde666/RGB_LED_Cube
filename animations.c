@@ -9,7 +9,6 @@
  #include "system.h"
  #include "transformation.h"
  #include "uart.h"
- #include "nec.h"
  #include <avr/interrupt.h>
  #include <stdlib.h>
 
@@ -27,8 +26,10 @@
 #define FRAMECOUNT_VALUE_FAST          10
 #define FRAMECOUNT_VALUE_VERY_FAST     5
 
+volatile uint8_t updateLayerTriggerFlag = 0;
+
 volatile uint8_t frameReady = 0;
-volatile uint8_t frameCnt = 0;
+static uint8_t frameCnt = 0;
 
 struct rgbLed ledValue_Array1[LED_ROWS_NUMBER][LED_COLUMNS_NUMBER][LED_LAYERS_NUMBER];
 struct rgbLed ledValue_Array2[LED_ROWS_NUMBER][LED_COLUMNS_NUMBER][LED_LAYERS_NUMBER];
@@ -82,13 +83,11 @@ const uint16_t gamma_table[256] = {
 
 
 static void waitForNextFrame(uint8_t counter) {
-    cli();
 	frameReady = 1;
 	frameCnt = (counter-1);
-	sei();
 }
 
-uint8_t getLedColor(volatile struct rgbLed *led)
+static uint8_t getLedColor(volatile struct rgbLed *led)
 {
     uint8_t res = 0;
 
@@ -229,7 +228,8 @@ uint8_t everyLED(void)
 
 // Regenähnliche Animation
 // Auf der obersten Ebene werden zufällige LEDs aktiviert, die sich dann nach unten bewegen
-uint8_t rainfall(uint8_t replay){
+uint8_t rainfall(uint8_t replay)
+{
     uint8_t activeLED = 1;
     uint8_t lednumber = 0;
 
@@ -310,9 +310,7 @@ uint8_t fadeColorCube(uint8_t replay)
         counter = replay;
         animationState = 1;
     }
-
-    switch(animationState) {
-    case 1:
+    else {
         localHSV.h++;
         fillLEDCube(&localHSV);
         if(localHSV.h == globalHSV.h)
@@ -324,7 +322,6 @@ uint8_t fadeColorCube(uint8_t replay)
                 counter--;
             }
         }
-        break;
     }
 
     waitForNextFrame(FRAMECOUNT_VALUE_FAST);
@@ -332,16 +329,14 @@ uint8_t fadeColorCube(uint8_t replay)
     return animationState;
 }
 
-uint8_t randomLedColorCube(uint8_t replay) {
+uint8_t randomLedColorCube(uint8_t replay)
+{
     if(animationState == 0) {
         counter = replay;
         animationState = 1;
     }
-
-    switch(animationState) {
-    case 1:
-        for(uint8_t i = 0; i < LED_NUMBER_MAX; i++)
-        {
+    else {
+        for(uint8_t i = 0; i < LED_NUMBER_MAX; i++) {
             uint8_t color = 0;
             color = rand() % (COLOR_MAX_NUMBER-1);
 
@@ -358,7 +353,6 @@ uint8_t randomLedColorCube(uint8_t replay) {
         else {
             counter--;
         }
-        break;
     }
 
     waitForNextFrame(FRAMECOUNT_VALUE_SLOW);
@@ -366,7 +360,6 @@ uint8_t randomLedColorCube(uint8_t replay) {
     return animationState;
 }
 
-//TODO 4. Layer muss mit einbezogen werden --> editiert
 uint8_t fillCubeDiagonal(uint8_t replays)
 {
     if(animationState == 0) {
@@ -693,11 +686,10 @@ uint8_t fillCube_randomly(uint8_t replay)
         break;
     case 2:
         copyFrame();
-        do{
+        do {
             ledNumber = rand() % LED_NUMBER_MAX;
 
-            if(getLedColor(nextFrame+ledNumber) == RGB_COLOR_BLACK)
-            {
+            if(getLedColor(nextFrame+ledNumber) == RGB_COLOR_BLACK) {
                 setLedColor((nextFrame+ledNumber), &localHSV);
                 activeLEDs++;
                 if(activeLEDs == LED_NUMBER_MAX) {
@@ -755,11 +747,10 @@ uint8_t clearCube_randomly(uint8_t replay)
         break;
     case 2:
         copyFrame();
-        do{
+        do {
             ledNumber = rand() % LED_NUMBER_MAX;
 
-            if(getLedColor(nextFrame+ledNumber) != RGB_COLOR_BLACK)
-            {
+            if(getLedColor(nextFrame+ledNumber) != RGB_COLOR_BLACK) {
                 setLedColor((nextFrame+ledNumber), &color_table[HSV_COLOR_BLACK]);
                 activeLEDs++;
                 if(activeLEDs == LED_NUMBER_MAX) {
@@ -794,7 +785,6 @@ uint8_t clearCube_randomly(uint8_t replay)
     return animationState;
 }
 
-//TODO nur eine Säule geht durch anstatt mehrere --> gelöst
 uint8_t dropLedTopDown(uint8_t replay)
 {
     static uint8_t ledNumber = 0;
@@ -821,28 +811,23 @@ uint8_t dropLedTopDown(uint8_t replay)
         break;
     case 2:
         copyFrame();
-        do{
+        do {
             /* zufällige LED bestimmen die wandern soll */
             ledNumber = rand() % LED_NUMBER_LAYER;
 
-            if(ledNumber != lastLED)
-            {
+            if(ledNumber != lastLED) {
                 /* Zufall entscheiden lassen, ob LED hoch oder runter wandern soll */
-                if(rand() % 2)
-                {
+                if(rand() % 2) {
                     /* Falls LED ganz unten ist, dann hochschieben */
-                    if(getLedColor(nextFrame+ledNumber+BOTTOM*16) != RGB_COLOR_BLACK)
-                    {
+                    if(getLedColor(nextFrame+ledNumber+BOTTOM*16) != RGB_COLOR_BLACK) {
                         setLedColor((nextFrame+ledNumber+BOTTOM*16), &color_table[HSV_COLOR_BLACK]);
                         setLedColor((nextFrame+ledNumber+(BOTTOM+1)*16), &localHSV);
                         animationState = 3;
                     }
                 }
-                else
-                {
+                else {
                     /* Falls LED ganz oben ist, dann runterfallen lassen */
-                    if(getLedColor(nextFrame+ledNumber+TOP*16) != RGB_COLOR_BLACK)
-                    {
+                    if(getLedColor(nextFrame+ledNumber+TOP*16) != RGB_COLOR_BLACK) {
                         setLedColor((nextFrame+ledNumber+TOP*16), &color_table[HSV_COLOR_BLACK]);
                         setLedColor((nextFrame+ledNumber+(TOP-1)*16), &localHSV);
                         animationState = 5;
@@ -1185,69 +1170,57 @@ uint8_t dropLedTopDown(uint8_t replay)
 //    }
 //}
 
-ISR(TIMER0_COMP_vect)
+void updateLayer(void)
 {
-    static uint8_t interruptState = 0;
+    static uint8_t layer = 0;
 
-    if(interruptState == 0)
+    //Update data for all columns
+    for(uint8_t i = 0; i < LED_NUMBER_LAYER; i++)
     {
-        //Check remote control input
-        necTriggerFlag = 1;
-        interruptState = 1;
+        Tlc5940_set(ledChannel_Array[i].r,(currentFrame+i+layer*16)->r / 16);
+        Tlc5940_set(ledChannel_Array[i].g,(currentFrame+i+layer*16)->g / 16);
+        Tlc5940_set(ledChannel_Array[i].b,(currentFrame+i+layer*16)->b / 16);
     }
-    else
+
+    //shift new data into tlc
+    Tlc5940_update();
+
+    //Update layer
+    if(layer == 0)
     {
-        static uint8_t layer = 0;
+        PORTC = (1 << LAYER_1_PIN);
+    }
+    else if(layer == 1)
+    {
+        PORTC = (1 << LAYER_2_PIN);
+    }
+    else if(layer == 2)
+    {
+        PORTC = (1 << LAYER_3_PIN);
+    }
+    else if(layer == 3)
+    {
+        PORTC = (1 << LAYER_4_PIN);
+    }
 
-        //Update data for all columns
-        for(uint8_t i = 0; i < LED_NUMBER_LAYER; i++)
-        {
-            Tlc5940_set(ledChannel_Array[i].r,(currentFrame+i+layer*16)->r / 16);
-            Tlc5940_set(ledChannel_Array[i].g,(currentFrame+i+layer*16)->g / 16);
-            Tlc5940_set(ledChannel_Array[i].b,(currentFrame+i+layer*16)->b / 16);
+    layer++;
+
+    if(layer >= LED_LAYERS_NUMBER)
+    {
+        //Check if time for actual frame is exceeded and load next frame
+        static uint8_t cntDown = 0;
+        if((frameReady != 0) && (cntDown == 0)) {
+            volatile struct rgbLed *ptr = currentFrame;
+            currentFrame = nextFrame;
+            nextFrame = ptr;
+
+            frameReady = 0;
+            cntDown = frameCnt;
         }
+        layer = 0;
 
-        //shift new data into tlc
-        Tlc5940_update();
-
-        //Update layer
-        if(layer == 0)
-        {
-            PORTC = (1 << LAYER_1_PIN);
+        if(cntDown > 0) {
+            cntDown--;
         }
-        else if(layer == 1)
-        {
-            PORTC = (1 << LAYER_2_PIN);
-        }
-        else if(layer == 2)
-        {
-            PORTC = (1 << LAYER_3_PIN);
-        }
-        else if(layer == 3)
-        {
-            PORTC = (1 << LAYER_4_PIN);
-        }
-
-        layer++;
-
-        if(layer >= LED_LAYERS_NUMBER)
-        {
-            //Check if time for actual frame is exceeded and load next frame
-            static uint8_t cntDown = 0;
-            if((frameReady != 0) && (cntDown == 0)) {
-                volatile struct rgbLed *ptr = currentFrame;
-                currentFrame = nextFrame;
-                nextFrame = ptr;
-
-                frameReady = 0;
-                cntDown = frameCnt;
-            }
-            layer = 0;
-
-            if(cntDown > 0) {
-                cntDown--;
-            }
-        }
-        interruptState = 0;
     }
 }

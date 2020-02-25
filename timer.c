@@ -1,6 +1,7 @@
 #include "timer.h"
 #include "tlc5940.h"
 #include "animations.h"
+#include "nec.h"
 #include "uart.h"
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -42,3 +43,20 @@ ISR(TIMER1_OVF_vect)
     Tlc5940_interrupt();
 }
 
+ISR(TIMER0_COMP_vect)
+{
+    static uint8_t interruptState = 0;
+
+    if(interruptState == 0)
+    {
+        //Trigger check remote control input
+        NEC_CheckInput();
+        interruptState = 1;
+    }
+    else
+    {
+        //Trigger update layer
+        updateLayer();
+        interruptState = 0;
+    }
+}

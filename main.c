@@ -11,21 +11,20 @@
 */
 
 #include "system.h"
-#include "rc5.h"
 #include "nec.h"
 #include "timer.h"
 #include "uart.h"
 #include "tlc5940.h"
 #include "animations.h"
-#include <avr/io.h>
 #include <avr/interrupt.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <inttypes.h>
 
 #include "transformation.h"
 #include "definitions.h"
 #include "animations.h"
+
+#define BRIGHTNESS_STEP (255/15)
 
 static void playDemo(void);
 
@@ -46,35 +45,85 @@ int main()
     sei();
     USART_puts("start application...\n");
 
-    mainState_t mainState = MAIN_STATE_POWER_DOWN;
-    mainState_t mainStateNew = MAIN_STATE_POWER_DOWN;
-
-    uint8_t actualProgram = 0;
+    mainState_t actualProgram = MAIN_STATE_PLAY_DEMO;
+    mainState_t saveActualProgram = MAIN_STATE_PLAY_DEMO;
 
     globalHSV.h = color_table[currentColor].h;
     globalHSV.s = color_table[currentColor].s;
     globalHSV.v = color_table[currentColor].v;
 
-    while(1)
-    {
+    while(1) {
         if(frameReady == 0) {
             switch(actualProgram) {
-            case 0:
+            case MAIN_STATE_PLAY_DEMO:
                 playDemo();
                 break;
-            case 1:
-    //            fillLEDCube(0,0);
+            case MAIN_STATE_MONOCHROME_CUBE:
+                fillLEDCube(&globalHSV);
                 break;
-            case 2:
-    //            dimmingCube();
+            case MAIN_STATE_POWER_DOWN:
                 break;
-            case 3:
-    //            playAllColors();
+            case MAIN_STATE_RGB_FADING:
+                fadeColorCube(0);
                 break;
             }
         }
 
-        if(uart_str_complete) {
+        if(keyCode != 0) {
+            sprintf(debug_str, "%08lx", keyCode);
+            USART_puts("0x");
+            USART_puts(debug_str);
+            USART_putc('\n');
+
+            buttonID_t buttonID;
+            buttonID = checkRemoteControlKey(keyCode);
+
+            switch(buttonID) {
+            case BUTTON_ID_PLAY_DEMO:
+                actualProgram = MAIN_STATE_PLAY_DEMO;
+                break;
+            case BUTTON_ID_POWER:
+                if(actualProgram != MAIN_STATE_POWER_DOWN) {
+                    saveActualProgram = actualProgram;
+                    actualProgram = MAIN_STATE_POWER_DOWN;
+                }
+                else {
+                    actualProgram = saveActualProgram;
+                }
+                break;
+            case BUTTON_ID_COLOR_CHANGE:
+                break;
+            case BUTTON_ID_WARM_WHITE:
+                actualProgram = MAIN_STATE_MONOCHROME_CUBE;
+                currentColor = HSV_COLOR_WHITE;
+                globalHSV.h = color_table[currentColor].h;
+                globalHSV.s = color_table[currentColor].s;
+                globalHSV.v = color_table[currentColor].v;
+                break;
+            case BUTTON_ID_FADE:
+                actualProgram = MAIN_STATE_RGB_FADING;
+                break;
+            case BUTTON_ID_BRIGHTNESS_DOWN:
+                if(globalHSV.v < BRIGHTNESS_STEP) {
+                    globalHSV.v = 0;
+                }
+                else {
+                    globalHSV.v -= BRIGHTNESS_STEP;
+                }
+                break;
+            case BUTTON_ID_BRIGHTNESS_UP:
+                if(globalHSV.v > (color_table[currentColor].v - BRIGHTNESS_STEP)) {
+                    globalHSV.v = color_table[currentColor].v;
+                }
+                else {
+                    globalHSV.v += BRIGHTNESS_STEP;
+                }
+                break;
+            }
+        }
+
+        if(uart_str_complete)
+        {
             if(uart_string[0] == 'c') {
                 if(uart_string[1] == '+') {
                     if(currentColor == 12) {
@@ -107,31 +156,6 @@ int main()
             }
             uart_str_complete = 0;
         }
-
-        if(necTriggerFlag)
-        {
-            necTriggerFlag = 0;
-            keyCode = NEC_CheckInput();
-
-            if(keyCode != 0)
-            {
-                sprintf(debug_str, "%08lx", keyCode);
-                USART_puts("0x");
-                USART_puts(debug_str);
-                USART_putc('\n');
-
-                mainStateNew = checkRemoteControlKey(keyCode);
-            }
-        }
-
-//        if(mainStateNew != mainState)
-//        {
-//            switch(mainState)
-//            {
-//            case MAIN_STATE_POWER_DOWN:
-//                break;
-//            }
-//        }
     }
 
     return 0;
@@ -141,8 +165,7 @@ static void playDemo(void) {
     static uint8_t demoState = 0;
     switch(demoState) {
     case 0:
-        if(fillCubeDiagonal(1) == 0)
-        {
+        if(fillCubeDiagonal(1) == 0) {
 #ifdef DEBUG
 //            USART_puts("fillCubeDiagonal finished\n");
 #endif
@@ -151,8 +174,7 @@ static void playDemo(void) {
         }
         break;
     case 1:
-        if(rainfall(10) == 0)
-        {
+        if(rainfall(10) == 0) {
 #ifdef DEBUG
 //            USART_puts("rainfall finished\n");
 #endif
@@ -161,8 +183,7 @@ static void playDemo(void) {
         }
         break;
     case 2:
-        if(activateRandomLED(65) == 0)
-        {
+        if(activateRandomLED(65) == 0) {
             demoState = rand()%11;
 #ifdef DEBUG
 //            USART_puts("activateRandomLED finished\n");
@@ -171,8 +192,7 @@ static void playDemo(void) {
         }
         break;
     case 3:
-        if(fillCube_randomly(0) == 0)
-        {
+        if(fillCube_randomly(0) == 0) {
 #ifdef DEBUG
 //            USART_puts("fillCube_randomly finished\n");
 #endif
@@ -181,8 +201,7 @@ static void playDemo(void) {
         }
         break;
     case 4:
-        if(clearCube_randomly(0) == 0)
-        {
+        if(clearCube_randomly(0) == 0) {
 #ifdef DEBUG
 //            USART_puts("clearCube_randomly finished\n");
 #endif
@@ -191,8 +210,7 @@ static void playDemo(void) {
         }
         break;
     case 5:
-        if(dropLedTopDown(21) == 0)
-        {
+        if(dropLedTopDown(21) == 0) {
 #ifdef DEBUG
 //            USART_puts("dropLedTopDown finished\n");
 #endif
@@ -201,8 +219,7 @@ static void playDemo(void) {
         }
         break;
     case 6:
-        if(fadeColorCube(0) == 0)
-        {
+        if(fadeColorCube(0) == 0) {
 #ifdef DEBUG
 //            USART_puts("fadeColorCube finished\n");
 #endif
@@ -211,8 +228,7 @@ static void playDemo(void) {
         }
         break;
     case 7:
-        if(floatingXLayer(3) == 0)
-        {
+        if(floatingXLayer(3) == 0) {
 #ifdef DEBUG
 //            USART_puts("floatingXLayer finished\n");
 #endif
@@ -221,8 +237,7 @@ static void playDemo(void) {
         }
         break;
     case 8:
-        if(floatingYLayer(3) == 0)
-        {
+        if(floatingYLayer(3) == 0) {
 #ifdef DEBUG
 //            USART_puts("floatingYLayer finished\n");
 #endif
@@ -231,8 +246,7 @@ static void playDemo(void) {
         }
         break;
     case 9:
-        if(floatingZLayer(3) == 0)
-        {
+        if(floatingZLayer(3) == 0) {
 #ifdef DEBUG
 //            USART_puts("floatingZLayer finished\n");
 #endif
@@ -241,8 +255,7 @@ static void playDemo(void) {
         }
         break;
     case 10:
-        if(randomLedColorCube(5) == 0)
-        {
+        if(randomLedColorCube(5) == 0) {
 #ifdef DEBUG
 //            USART_puts("randomLedColorCube finished\n");
 #endif
