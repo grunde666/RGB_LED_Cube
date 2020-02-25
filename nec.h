@@ -14,7 +14,7 @@ typedef enum {
 
 void NEC_Init(void);
 void NEC_CheckInput(void);
-buttonID_t checkRemoteControlKey(unsigned long int keyCode);
+buttonID_t checkRemoteControlKey(unsigned long int newKeyCode);
 
 extern volatile unsigned long int keyCode;
 

@@ -12,7 +12,7 @@
 #define NEC_SENSE_DREG  DDRB
 
 #define NEC_PULSE_NUMBER 32
-#define NEC_PULSEWIDTH_ONE  4
+#define NEC_PULSEWIDTH_ONE  7
 
 #define KEYCODE_POWER           UINT32_C(0xF7C03F)
 #define KEYCODE_WARM_WHITE      UINT32_C(0xF740BF)
@@ -38,7 +38,6 @@ void NEC_CheckInput(void)
     static unsigned long bitPattern;
     static uint8_t pinState = 1;
 
-    keyCode = 0;
     timerCNT++;
 
     if((NEC_SENSE_IREG & (1 << NEC_SENSE_PIN)) && pinState == 0) { //Rising edge detection
@@ -48,7 +47,7 @@ void NEC_CheckInput(void)
         pinState = 0;
         pulseCount++;
 
-        if((timerCNT >= 25)) { // If the pulse width is greater than 12 ms, this will mark the SOF
+        if((timerCNT >= 50)) { // If the pulse width is greater than 12 ms, this will mark the SOF
             pulseCount = -1; // First count needs to be skipped hence pulse count is set to -1
             bitPattern = 0;
         }
@@ -67,44 +66,44 @@ void NEC_CheckInput(void)
     }
 }
 
-buttonID_t checkRemoteControlKey(unsigned long int keyCode)
+buttonID_t checkRemoteControlKey(unsigned long int newKeyCode)
 {
     buttonID_t buttonID = 0;
 
-    switch(keyCode) {
+    switch(newKeyCode) {
     case KEYCODE_POWER:
         //toggle power state of cube
-        USART_puts("power button pressed!\n");
+//        USART_puts("power button pressed!\n");
         buttonID = BUTTON_ID_POWER;
         break;
     case KEYCODE_WARM_WHITE:
         //change color to white --> stop demo
-        USART_puts("warm-white button pressed!\n");
+//        USART_puts("warm-white button pressed!\n");
         buttonID = BUTTON_ID_WARM_WHITE;
         break;
     case KEYCODE_BRIGHTNESS_UP:
         //increase brightness until limit is reached
-        USART_puts("brightness-up button pressed!\n");
+//        USART_puts("brightness-up button pressed!\n");
         buttonID = BUTTON_ID_BRIGHTNESS_UP;
         break;
     case KEYCODE_BRIGHTNESS_DOWN:
         //decrease brightness until limit is reached
-        USART_puts("brightness-down button pressed!\n");
+//        USART_puts("brightness-down button pressed!\n");
         buttonID = BUTTON_ID_BRIGHTNESS_DOWN;
         break;
     case KEYCODE_COLOR_CHANGE:
         //increment index of color table --> stop demo
-        USART_puts("color button pressed!\n");
+//        USART_puts("color button pressed!\n");
         buttonID = BUTTON_ID_COLOR_CHANGE;
         break;
     case KEYCODE_PLAY_DEMO:
         //start play demo
-        USART_puts("demo button pressed!\n");
+//        USART_puts("demo button pressed!\n");
         buttonID = BUTTON_ID_PLAY_DEMO;
         break;
     case KEYCODE_FADE:
         //start fading cube
-        USART_puts("fade button pressed!\n");
+//        USART_puts("fade button pressed!\n");
         buttonID = BUTTON_ID_FADE;
         break;
     }

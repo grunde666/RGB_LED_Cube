@@ -11,7 +11,7 @@ void Timer0_Init(void)
 {
     // ~4kHz for sampling of IR sensor
     // ~2kHz for update of led driver data
-    // ((16000000/1024)/4) = 3906,25 Hz
+    // ((16000000/1024)/4) = 1953,125 Hz
     TCCR0 |= (1 << WGM01); //CTC mode
     OCR0 = 4 - 1;
     TIMSK |= (1 << OCIE0);
@@ -25,7 +25,7 @@ void Timer2_Init(void)
     OCR2 = TLC_GSCLK_PERIOD; // see tlc_config.h
     TCCR2 |= (1 << CS20);    // no prescale, (start pwm output)
     TCCR1B |= (1 << CS10);  // no prescale, (start pwm output)
-    TCCR0 |= (1 << CS02) | (1 << CS00); // prescaler = 256
+    TCCR0 |= (1 << CS02) | (1 << CS00); // prescaler = 1024
 }
 
 /* Timer 1 - BLANK / XLAT */
@@ -47,16 +47,13 @@ ISR(TIMER0_COMP_vect)
 {
     static uint8_t interruptState = 0;
 
-    if(interruptState == 0)
-    {
-        //Trigger check remote control input
-        NEC_CheckInput();
-        interruptState = 1;
-    }
-    else
-    {
+    //Trigger check remote control input
+    NEC_CheckInput();
+    interruptState++;
+
+    if(interruptState == 16) {
         //Trigger update layer
-        updateLayer();
+        updateLayerTriggerFlag = 1;
         interruptState = 0;
     }
 }

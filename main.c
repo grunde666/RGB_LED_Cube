@@ -30,7 +30,6 @@ static void playDemo(void);
 
 int main()
 {
-    unsigned long int keyCode = 0;
     uint8_t currentColor = HSV_COLOR_MAGENTA;
 #ifdef DEBUG
     char debug_str[20]="";
@@ -53,6 +52,12 @@ int main()
     globalHSV.v = color_table[currentColor].v;
 
     while(1) {
+        if(updateLayerTriggerFlag) {
+            updateLayer();
+            updateLayerTriggerFlag = 0;
+        }
+
+
         if(frameReady == 0) {
             switch(actualProgram) {
             case MAIN_STATE_PLAY_DEMO:
@@ -70,13 +75,15 @@ int main()
         }
 
         if(keyCode != 0) {
-            sprintf(debug_str, "%08lx", keyCode);
-            USART_puts("0x");
-            USART_puts(debug_str);
-            USART_putc('\n');
+//            sprintf(debug_str, "%08lx", keyCode);
+//            USART_puts("0x");
+//            USART_puts(debug_str);
+//            USART_putc('\n');
 
             buttonID_t buttonID;
             buttonID = checkRemoteControlKey(keyCode);
+
+            keyCode = 0;
 
             switch(buttonID) {
             case BUTTON_ID_PLAY_DEMO:
@@ -84,11 +91,11 @@ int main()
                 break;
             case BUTTON_ID_POWER:
                 if(actualProgram != MAIN_STATE_POWER_DOWN) {
-                    saveActualProgram = actualProgram;
-                    actualProgram = MAIN_STATE_POWER_DOWN;
+//                    saveActualProgram = actualProgram;
+//                    actualProgram = MAIN_STATE_POWER_DOWN;
                 }
                 else {
-                    actualProgram = saveActualProgram;
+//                    actualProgram = saveActualProgram;
                 }
                 break;
             case BUTTON_ID_COLOR_CHANGE:

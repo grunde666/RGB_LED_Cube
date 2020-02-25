@@ -20,11 +20,11 @@
  *
  */
 
-#define FRAMECOUNT_VALUE_VERY_SLOW     80
-#define FRAMECOUNT_VALUE_SLOW          40
-#define FRAMECOUNT_VALUE_MEDIUM        20
-#define FRAMECOUNT_VALUE_FAST          10
-#define FRAMECOUNT_VALUE_VERY_FAST     5
+#define FRAMECOUNT_VALUE_VERY_SLOW     61   //entspricht 1 s bei 61 Hz
+#define FRAMECOUNT_VALUE_SLOW          30   //entspricht 500 ms bei 61 Hz
+#define FRAMECOUNT_VALUE_MEDIUM        15   //entspricht 250 ms bei 61 Hz
+#define FRAMECOUNT_VALUE_FAST          6    //entspricht 100 ms bei 61 Hz
+#define FRAMECOUNT_VALUE_VERY_FAST     1    //entspricht 16 ms bei 61 Hz
 
 volatile uint8_t updateLayerTriggerFlag = 0;
 
@@ -132,9 +132,16 @@ void setLedColor(volatile struct rgbLed *led, const struct hsv *newColor)
     {
         i=newColor->h/43;
         f=newColor->h%43;
-        p = (newColor->v * (255 - newColor->s))/256;
-        q = (newColor->v * ((10710 - (newColor->s * f))/42))/256;
-        t = (newColor->v * ((10710 - (newColor->s * (42 - f)))/42))/256;
+        if(newColor->v > 0) {
+            p = (newColor->v * (255 - newColor->s))/256;
+            q = (newColor->v * ((10710 - (newColor->s * f))/42))/256;
+            t = (newColor->v * ((10710 - (newColor->s * (42 - f)))/42))/256;
+        }
+        else {
+            p = 0;
+            q = 0;
+            t = 0;
+        }
 
         switch(i)
         {
@@ -301,6 +308,7 @@ uint8_t rainfall(uint8_t replay)
     return animationState;
 }
 
+//TODO Ausnahme weiß hinzufügen, da Saturation = 0 ist und Farbenfading nicht funktioniert
 uint8_t fadeColorCube(uint8_t replay)
 {
     if(animationState == 0) {
@@ -312,6 +320,7 @@ uint8_t fadeColorCube(uint8_t replay)
     }
     else {
         localHSV.h++;
+        localHSV.v = globalHSV.v;
         fillLEDCube(&localHSV);
         if(localHSV.h == globalHSV.h)
         {
@@ -324,7 +333,7 @@ uint8_t fadeColorCube(uint8_t replay)
         }
     }
 
-    waitForNextFrame(FRAMECOUNT_VALUE_FAST);
+    waitForNextFrame(FRAMECOUNT_VALUE_MEDIUM);
 
     return animationState;
 }
@@ -355,7 +364,7 @@ uint8_t randomLedColorCube(uint8_t replay)
         }
     }
 
-    waitForNextFrame(FRAMECOUNT_VALUE_SLOW);
+    waitForNextFrame(FRAMECOUNT_VALUE_MEDIUM);
 
     return animationState;
 }
@@ -448,7 +457,7 @@ uint8_t fillCubeDiagonal(uint8_t replays)
         }
     }
 
-    waitForNextFrame(FRAMECOUNT_VALUE_MEDIUM);
+    waitForNextFrame(FRAMECOUNT_VALUE_FAST);
 
     return animationState;
 }
@@ -500,7 +509,7 @@ uint8_t floatingZLayer(uint8_t replay)
         }
     }
 
-    waitForNextFrame(FRAMECOUNT_VALUE_MEDIUM);
+    waitForNextFrame(FRAMECOUNT_VALUE_FAST);
 
     return animationState;
 }
@@ -552,7 +561,7 @@ uint8_t floatingYLayer(uint8_t replay)
         }
     }
 
-    waitForNextFrame(FRAMECOUNT_VALUE_MEDIUM);
+    waitForNextFrame(FRAMECOUNT_VALUE_FAST);
 
     return animationState;
 }
@@ -604,7 +613,7 @@ uint8_t floatingXLayer(uint8_t replay)
         }
     }
 
-    waitForNextFrame(FRAMECOUNT_VALUE_MEDIUM);
+    waitForNextFrame(FRAMECOUNT_VALUE_FAST);
 
     return animationState;
 }
