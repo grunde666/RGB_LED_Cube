@@ -4,6 +4,7 @@
 
 void NEC_Init(void);
 unsigned long NEC_CheckInput(void);
+uint8_t checkRemoteControlKey(unsigned long int keyCode);
 
 extern volatile uint8_t necTriggerFlag;
 

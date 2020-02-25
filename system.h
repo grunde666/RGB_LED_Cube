@@ -19,6 +19,13 @@
 #define SetLayer4()     PORTC = (1 << LAYER_4_PIN)
 #define ClearLayer4()   PORTC &= ~(1 << LAYER_4_PIN)
 
+typedef enum
+{
+    MAIN_STATE_POWER_DOWN  = 0,
+    MAIN_STATE_PLAY_DEMO   = 1,
+    MAIN_STATE_STEADY_CUBE = 2,
+}mainState_t;
+
 void InitADC(void);
 void InitRandomGenerator(void);
 void intToASCII(uint8_t src, char* dest);

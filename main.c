@@ -32,78 +32,81 @@ static void playDemo(void);
 int main()
 {
     unsigned long int keyCode = 0;
-//    uint8_t currentColor = HSV_COLOR_MAGENTA;
+    uint8_t currentColor = HSV_COLOR_MAGENTA;
 #ifdef DEBUG
     char debug_str[20]="";
     USART_Init();
 #endif
-//    InitLayerPins();
+    InitLayerPins();
 
     NEC_Init();
-//    InitADC();
+    InitADC();
     Timer0_Init();
-//    Tlc5940_Init();
+    Tlc5940_Init();
     sei();
     USART_puts("start application...\n");
 
-//    uint8_t actualProgram = 0;
-//
-//    globalHSV.h = color_table[currentColor].h;
-//    globalHSV.s = color_table[currentColor].s;
-//    globalHSV.v = color_table[currentColor].v;
+    mainState_t mainState = MAIN_STATE_POWER_DOWN;
+    mainState_t mainStateNew = MAIN_STATE_POWER_DOWN;
+
+    uint8_t actualProgram = 0;
+
+    globalHSV.h = color_table[currentColor].h;
+    globalHSV.s = color_table[currentColor].s;
+    globalHSV.v = color_table[currentColor].v;
 
     while(1)
     {
-//        if(frameReady == 0) {
-//            switch(actualProgram) {
-//            case 0:
-//                playDemo();
-//                break;
-//            case 1:
-//    //            fillLEDCube(0,0);
-//                break;
-//            case 2:
-//    //            dimmingCube();
-//                break;
-//            case 3:
-//    //            playAllColors();
-//                break;
-//            }
-//        }
-//
-//        if(uart_str_complete) {
-//            if(uart_string[0] == 'c') {
-//                if(uart_string[1] == '+') {
-//                    if(currentColor == 12) {
-//                        currentColor = 0;
-//                    }
-//                    else {
-//                        currentColor++;
-//                    }
-//                    globalHSV.h = color_table[currentColor].h;
-//                    globalHSV.s = color_table[currentColor].s;
-//                }
-//                else if(uart_string[1] == '-') {
-//                    if(currentColor == 0) {
-//                        currentColor = 12;
-//                    }
-//                    else {
-//                        currentColor--;
-//                    }
-//                    globalHSV.h = color_table[currentColor].h;
-//                    globalHSV.s = color_table[currentColor].s;
-//                }
-//            }
-//            else if(uart_string[0] == 'h') {
-//                if(uart_string[1] == '-') {
-//                    globalHSV.v = globalHSV.v - 25;
-//                }
-//                else if(uart_string[1] == '+') {
-//                    globalHSV.v = globalHSV.v + 25;
-//                }
-//            }
-//            uart_str_complete = 0;
-//        }
+        if(frameReady == 0) {
+            switch(actualProgram) {
+            case 0:
+                playDemo();
+                break;
+            case 1:
+    //            fillLEDCube(0,0);
+                break;
+            case 2:
+    //            dimmingCube();
+                break;
+            case 3:
+    //            playAllColors();
+                break;
+            }
+        }
+
+        if(uart_str_complete) {
+            if(uart_string[0] == 'c') {
+                if(uart_string[1] == '+') {
+                    if(currentColor == 12) {
+                        currentColor = 0;
+                    }
+                    else {
+                        currentColor++;
+                    }
+                    globalHSV.h = color_table[currentColor].h;
+                    globalHSV.s = color_table[currentColor].s;
+                }
+                else if(uart_string[1] == '-') {
+                    if(currentColor == 0) {
+                        currentColor = 12;
+                    }
+                    else {
+                        currentColor--;
+                    }
+                    globalHSV.h = color_table[currentColor].h;
+                    globalHSV.s = color_table[currentColor].s;
+                }
+            }
+            else if(uart_string[0] == 'h') {
+                if(uart_string[1] == '-') {
+                    globalHSV.v = globalHSV.v - 25;
+                }
+                else if(uart_string[1] == '+') {
+                    globalHSV.v = globalHSV.v + 25;
+                }
+            }
+            uart_str_complete = 0;
+        }
 
         if(necTriggerFlag)
         {
@@ -116,8 +119,19 @@ int main()
                 USART_puts("0x");
                 USART_puts(debug_str);
                 USART_putc('\n');
+
+                mainStateNew = checkRemoteControlKey(keyCode);
             }
         }
+
+//        if(mainStateNew != mainState)
+//        {
+//            switch(mainState)
+//            {
+//            case MAIN_STATE_POWER_DOWN:
+//                break;
+//            }
+//        }
     }
 
     return 0;

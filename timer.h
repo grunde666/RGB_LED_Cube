@@ -19,9 +19,6 @@
     \note Default is 3 */
 #define TLC_GSCLK_PERIOD    3
 
-extern volatile uint8_t rc5_trigger;
-extern volatile uint8_t msCount;
-
 void Timer2_Init(void);
 void Timer1_Init(void);
 void Timer0_Init(void);

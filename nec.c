@@ -12,7 +12,14 @@
 #define NEC_SENSE_DREG  DDRB
 
 #define NEC_PULSE_NUMBER 32
-#define NEC_PULSEWIDTH_ONE  7
+#define NEC_PULSEWIDTH_ONE  4
+
+#define KEY_POWER           UINT32_C(0x00F7C03F)
+#define KEY_WARM_WHITE      UINT32_C(0x00F740BF)
+#define KEY_BRIGHTNESS_UP   UINT32_C(0x00F700FF)
+#define KEY_BRIGHTNESS_DOWN UINT32_C(0x00F7807F)
+#define KEY_AUTO            UINT32_C(0x00F7E01F)
+#define KEY_COLOR           UINT32_C(0x00F710EF)
 
 volatile uint8_t necTriggerFlag = 0;
 
@@ -42,24 +49,17 @@ unsigned long NEC_CheckInput(void)
         pinState = 0;
         pulseCount++;
 
-        if((timerCNT >= 50)) // If the pulse width is greater than 12 ms, this will mark the SOF
+        if((timerCNT >= 25)) // If the pulse width is greater than 12 ms, this will mark the SOF
         {
             pulseCount = -1; // First count needs to be skipped hence pulse count is set to -1
             bitPattern = 0;
-            USART_puts("S\n");
         }
         else if((pulseCount >= 0) && (pulseCount < NEC_PULSE_NUMBER)) //Accumulate the bit values between 0-31.
         {
             if(timerCNT >= NEC_PULSEWIDTH_ONE)  //pulse width greater than 2ms is considered as LOGIC1
             {
                 bitPattern |=(unsigned long)1<<(31-pulseCount);
-                USART_putc('1');
             }
-            else
-            {
-                USART_putc('0');
-            }
-            USART_putc('\n');
 
             if(pulseCount == NEC_PULSE_NUMBER-1) //This will mark the End of frame as 32 pulses are received
             {
@@ -72,4 +72,39 @@ unsigned long NEC_CheckInput(void)
     }
 
     return newKey;
+}
+
+uint8_t checkRemoteControlKey(unsigned long int keyCode)
+{
+    uint8_t state = 0;
+
+    switch(keyCode)
+    {
+    case KEY_POWER:
+        //toggle power state of cube
+        USART_puts("power button pressed!\n");
+        break;
+    case KEY_WARM_WHITE:
+        //change color to white --> stop demo
+        USART_puts("warm-white button pressed!\n");
+        break;
+    case KEY_BRIGHTNESS_UP:
+        //increase brightness until limit is reached
+        USART_puts("brightness-up button pressed!\n");
+        break;
+    case KEY_BRIGHTNESS_DOWN:
+        //decrease brightness until limit is reached
+        USART_puts("brightness-down button pressed!\n");
+        break;
+    case KEY_COLOR:
+        //increment index of color table --> stop demo
+        USART_puts("color button pressed!\n");
+        break;
+    case KEY_AUTO:
+        //start play demo
+        USART_puts("auto button pressed!\n");
+        break;
+    }
+
+    return state;
 }

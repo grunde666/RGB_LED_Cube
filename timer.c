@@ -1,25 +1,19 @@
 #include "timer.h"
-#include "rc5.h"
 #include "tlc5940.h"
 #include "animations.h"
 #include "uart.h"
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-volatile uint8_t rc5_trigger;
-volatile uint8_t msCount;
-volatile uint16_t gs_cnt;
-
 /* Timer 0 - Frame Updater */
 void Timer0_Init(void)
 {
     // ~4kHz for sampling of IR sensor
     // ~2kHz for update of led driver data
-    // ((16000000/64)/62) = 4000 Hz
+    // ((16000000/1024)/4) = 3906,25 Hz
     TCCR0 |= (1 << WGM01); //CTC mode
-    OCR0 = 62 - 1;
+    OCR0 = 4 - 1;
     TIMSK |= (1 << OCIE0);
-    TCCR0 |= (1 << CS01) | (1 << CS00); // prescaler = 64
 }
 
 /* Timer 2 - GSCLK */

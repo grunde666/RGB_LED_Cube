@@ -1187,67 +1187,67 @@ uint8_t dropLedTopDown(uint8_t replay)
 
 ISR(TIMER0_COMP_vect)
 {
-    //Check remote control input
-    necTriggerFlag = 1;
+    static uint8_t interruptState = 0;
 
-//    static uint8_t layer = 0;
-//    static uint8_t ledDriverUpdate_cnt = 0;
-//
-//    if(ledDriverUpdate_cnt == 0) {
-//        ledDriverUpdate_cnt = 2;
-//
-//        Update data for all columns
-//        for(uint8_t i = 0; i < LED_NUMBER_LAYER; i++)
-//        {
-//            Tlc5940_set(ledChannel_Array[i].r,(currentFrame+i+layer*16)->r / 16);
-//            Tlc5940_set(ledChannel_Array[i].g,(currentFrame+i+layer*16)->g / 16);
-//            Tlc5940_set(ledChannel_Array[i].b,(currentFrame+i+layer*16)->b / 16);
-//        }
-//
-//        shift new data into tlc
-//        Tlc5940_update();
-//
-//        Update layer
-//        if(layer == 0)
-//        {
-//            PORTC = (1 << LAYER_1_PIN);
-//        }
-//        else if(layer == 1)
-//        {
-//            PORTC = (1 << LAYER_2_PIN);
-//        }
-//        else if(layer == 2)
-//        {
-//            PORTC = (1 << LAYER_3_PIN);
-//        }
-//        else if(layer == 3)
-//        {
-//            PORTC = (1 << LAYER_4_PIN);
-//        }
-//
-//        layer++;
-//
-//        if(layer >= LED_LAYERS_NUMBER)
-//        {
-//            Check if time for actual frame is exceeded and load next frame
-//            static uint8_t cntDown = 0;
-//            if((frameReady != 0) && (cntDown == 0)) {
-//                volatile struct rgbLed *ptr = currentFrame;
-//                currentFrame = nextFrame;
-//                nextFrame = ptr;
-//
-//                frameReady = 0;
-//                cntDown = frameCnt;
-//            }
-//            layer = 0;
-//
-//            if(cntDown > 0) {
-//                cntDown--;
-//            }
-//        }
-//    }
-//
-//    if(ledDriverUpdate_cnt > 0) {
-//        ledDriverUpdate_cnt--;
-//    }
+    if(interruptState == 0)
+    {
+        //Check remote control input
+        necTriggerFlag = 1;
+        interruptState = 1;
+    }
+    else
+    {
+        static uint8_t layer = 0;
+
+        //Update data for all columns
+        for(uint8_t i = 0; i < LED_NUMBER_LAYER; i++)
+        {
+            Tlc5940_set(ledChannel_Array[i].r,(currentFrame+i+layer*16)->r / 16);
+            Tlc5940_set(ledChannel_Array[i].g,(currentFrame+i+layer*16)->g / 16);
+            Tlc5940_set(ledChannel_Array[i].b,(currentFrame+i+layer*16)->b / 16);
+        }
+
+        //shift new data into tlc
+        Tlc5940_update();
+
+        //Update layer
+        if(layer == 0)
+        {
+            PORTC = (1 << LAYER_1_PIN);
+        }
+        else if(layer == 1)
+        {
+            PORTC = (1 << LAYER_2_PIN);
+        }
+        else if(layer == 2)
+        {
+            PORTC = (1 << LAYER_3_PIN);
+        }
+        else if(layer == 3)
+        {
+            PORTC = (1 << LAYER_4_PIN);
+        }
+
+        layer++;
+
+        if(layer >= LED_LAYERS_NUMBER)
+        {
+            //Check if time for actual frame is exceeded and load next frame
+            static uint8_t cntDown = 0;
+            if((frameReady != 0) && (cntDown == 0)) {
+                volatile struct rgbLed *ptr = currentFrame;
+                currentFrame = nextFrame;
+                nextFrame = ptr;
+
+                frameReady = 0;
+                cntDown = frameCnt;
+            }
+            layer = 0;
+
+            if(cntDown > 0) {
+                cntDown--;
+            }
+        }
+        interruptState = 0;
+    }
 }
