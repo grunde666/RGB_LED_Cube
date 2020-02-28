@@ -20,10 +20,10 @@
  *
  */
 
-#define FRAMECOUNT_VALUE_VERY_SLOW     61   //entspricht 1 s bei 61 Hz
-#define FRAMECOUNT_VALUE_SLOW          30   //entspricht 500 ms bei 61 Hz
+#define FRAMECOUNT_VALUE_VERY_SLOW     30   //entspricht 500 ms bei 61 Hz
+#define FRAMECOUNT_VALUE_SLOW          23   //entspricht 375 ms bei 61 Hz
 #define FRAMECOUNT_VALUE_MEDIUM        15   //entspricht 250 ms bei 61 Hz
-#define FRAMECOUNT_VALUE_FAST          6    //entspricht 100 ms bei 61 Hz
+#define FRAMECOUNT_VALUE_FAST          8    //entspricht 125 ms bei 61 Hz
 #define FRAMECOUNT_VALUE_VERY_FAST     1    //entspricht 16 ms bei 61 Hz
 
 volatile uint8_t updateLayerTriggerFlag = 0;
@@ -308,12 +308,17 @@ uint8_t rainfall(uint8_t replay)
     return animationState;
 }
 
-//TODO Ausnahme weiß hinzufügen, da Saturation = 0 ist und Farbenfading nicht funktioniert
 uint8_t fadeColorCube(uint8_t replay)
 {
     if(animationState == 0) {
         localHSV.h = globalHSV.h;
-        localHSV.s = globalHSV.s;
+        //If current color is white then add saturation to get other colors
+        if(localHSV.h == 0) {
+            localHSV.s = 255;
+        }
+        else {
+            localHSV.s = globalHSV.s;
+        }
         localHSV.v = globalHSV.v;
         counter = replay;
         animationState = 1;
@@ -322,8 +327,7 @@ uint8_t fadeColorCube(uint8_t replay)
         localHSV.h++;
         localHSV.v = globalHSV.v;
         fillLEDCube(&localHSV);
-        if(localHSV.h == globalHSV.h)
-        {
+        if(localHSV.h == globalHSV.h) {
             if(counter == 0) {
                 animationState = 0;
             }
@@ -939,87 +943,10 @@ uint8_t dropLedTopDown(uint8_t replay)
 //    clearLEDCube();
 //}
 
-//void rotateLayer(uint8_t replay)
-//{
-//    replay *= 2;
-//
-//    for(; replay > 0; replay--)
-//    {
-//        for(uint8_t z = 0; z < 4; z++)
-//        {
-//            for(uint8_t x = 0; x < 4; x++)
-//            {
-//               ledValue_Array[x][y][z](x,1,z,1);
-//            }
-//        }
-//        waitForNextFrame(FRAMECOUNT_VALUE_MEDIUM);
-//
-//        for(uint8_t z = 0; z < 3; z++)
-//        {
-//            for(uint8_t y = 0; y < 3; y++)
-//            {
-//                if(y == 0)
-//                {
-//                    ledValue_Array[x][y][z](0,y,z,1);
-//                }
-//                else if(y == 1)
-//                {
-//                    ledValue_Array[x][y][z](0,y,z,0);
-//                    ledValue_Array[x][y][z](2,y,z,0);
-//                }
-//                else if(y == 2)
-//                {
-//                    ledValue_Array[x][y][z](2,y,z,1);
-//                }
-//            }
-//        }
-//        waitForNextFrame(FRAMECOUNT_VALUE_MEDIUM);
-//
-//        for(uint8_t z = 0; z < 3; z++)
-//        {
-//            for(uint8_t y = 0; y < 3; y++)
-//            {
-//                if(y == 0)
-//                {
-//                    ledValue_Array[x][y][z](0,y,z,0);
-//                    ledValue_Array[x][y][z](1,y,z,1);
-//                }
-//                else if(y == 2)
-//                {
-//                    ledValue_Array[x][y][z](2,y,z,0);
-//                    ledValue_Array[x][y][z](1,y,z,1);
-//                }
-//            }
-//        }
-//        waitForNextFrame(FRAMECOUNT_VALUE_MEDIUM);
-//
-//        for(uint8_t z = 0; z < 3; z++)
-//        {
-//            for(uint8_t y = 0; y < 3; y++)
-//            {
-//                if(y == 0)
-//                {
-//                    ledValue_Array[x][y][z](1,y,z,0);
-//                    ledValue_Array[x][y][z](2,y,z,1);
-//                }
-//                else if(y == 2)
-//                {
-//                    ledValue_Array[x][y][z](1,y,z,0);
-//                    ledValue_Array[x][y][z](0,y,z,1);
-//                }
-//            }
-//        }
-//        waitForNextFrame(FRAMECOUNT_VALUE_MEDIUM);
-//
-//        clearLEDCube();
-//    }
-//}
-
-//void cubeFraming(uint8_t replay)
+//uint8_t cubeFraming(uint8_t replay)
 //{
 //    static uint8_t led_start = 0;
 //
-//    if(frameReady == 0) {
 //        if(animationState == 0) {
 //            counter = replay;
 //            clearLEDCube();
@@ -1176,7 +1103,8 @@ uint8_t dropLedTopDown(uint8_t replay)
 //            waitForNextFrame(FRAMECOUNT_VALUE_MEDIUM);
 //            k = 0;
 //        }
-//    }
+//
+//    return animationState;
 //}
 
 void updateLayer(void)
