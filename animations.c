@@ -943,169 +943,387 @@ uint8_t dropLedTopDown(uint8_t replay)
 //    clearLEDCube();
 //}
 
-//uint8_t cubeFraming(uint8_t replay)
-//{
-//    static uint8_t led_start = 0;
-//
-//        if(animationState == 0) {
-//            counter = replay;
-//            clearLEDCube();
-//            animationState = 1;
-//            localHSV.h = globalHSV.h;
-//            localHSV.s = globalHSV.s;
-//            localHSV.v = globalHSV.v;
-//        }
-//
-//        switch(animationState) {
-//        case 1:
-//            /* Erste LED in einer Ecke aktivieren */
-//            setLedColor((nextFrame+led_start+0*16), &localHSV);
-//            animationState = 2;
-//            break;
-//        case 2:
-//            clearLEDCube();
-//            /* Würfel mit 8 LEDs aktivieren */
-//            for(uint8_t x = (0+(led_start%4)/2); x < (2+(led_start%4)/2); x++)
-//            {
-//                for(uint8_t y = (0+(led_start/4)/2); y < (2+(led_start/4)/2); y++)
-//                {
-//                    for(uint8_t z = 0; z < 2; z++)
-//                    {
-//                        setLedColor((nextFrame+x+y*4+z*16), &localHSV);
-//                    }
-//                }
-//            }
-//            animationState = 3;
-//            break;
-//        case 3:
-//            clearLEDCube();
-//            for(uint8_t y = 0; y < 3; y++)
-//            {
-//                for(uint8_t x = 0; x < 3; x++)
-//                {
-//                    setLedColor((nextFrame+x+y*4+0*16), &localHSV);
-//                }
-//            }
-//            setLedColor((nextFrame+1+1*4+z*16), &color_table[HSV_COLOR_BLACK]);
-//            copyLayer(Z_LAYER,BOTTOM,TOP-1);
-//            for(uint8_t y = 0; y < 3; y++)
-//            {
-//                for(uint8_t x = 0; x < 3; x++)
-//                {
-//                    setLedColor((nextFrame+x+y*4+1*16), &localHSV);
-//                    x++;
-//                }
-//                y++;
-//            }
-//            animationState = 4;
-//            break;
-//        }
-//
-//        if((globalHSV.h != localHSV.h) || (globalHSV.s != localHSV.s) || (globalHSV.v != localHSV.v)) {
-//            localHSV.h = globalHSV.h;
-//            localHSV.s = globalHSV.s;
-//            localHSV.v = globalHSV.v;
-//
-//            for(uint8_t i = 0; i < LED_NUMBER_MAX; i++) {
-//                if(getLedColor(nextFrame + i) != RGB_COLOR_BLACK) {
-//                    setLedColor((nextFrame + i), &localHSV);
-//                }
-//            }
-//        }
-//
-//        waitForNextFrame(FRAMECOUNT_VALUE_VERY_FAST);
-//    }
-//
-//    uint8_t k = 0;
-//
-//
-//    for(; replay > 0; replay--)
-//    {
-//        for(uint8_t j = 0; j < 4; j++)
-//        {
-//            if(j == 0)
-//            {
-//                x_off = 0;
-//                y_off = 0;
-//            }
-//            else if(j == 1)
-//            {
-//                x_off = 2;
-//                y_off = 0;
-//            }
-//            else if(j == 2)
-//            {
-//                x_off = 2;
-//                y_off = 2;
-//            }
-//            else if(j == 3)
-//            {
-//                x_off = 0;
-//                y_off = 2;
-//            }
-//
-//            for(uint8_t i = 0; i < 5; i++)
-//            {
-//                clearLEDCube();
-//                switch(k)
-//                {
-//                /* Erste LED in einer Ecke aktivieren */
-//                case 0:
-//                    ledValue_Array[x][y][z](x_off,y_off,0,1);
-//                    break;
-//                /* kleinen Würfel mit 4 LEDs aktivieren */
-//                case 1:
-//                    for(uint8_t y = (0 + y_off / 2); y < (2 + y_off / 2); y++)
-//                    {
-//                        for(uint8_t x = (0 + x_off / 2); x < (2 + x_off / 2); x++)
-//                        {
-//                            ledValue_Array[x][y][z](x,y,0,1);
-//                        }
-//                    }
-//                    copyLayer(Z_LAYER,BOTTOM,MITTE);
-//                    break;
-//                /* Würfelkanten aktivieren */
-//                case 2:
-//                    for(uint8_t y = 0; y < 3; y++)
-//                    {
-//                        for(uint8_t x = 0; x < 3; x++)
-//                        {
-//                            ledValue_Array[x][y][z](x,y,0,1);
-//                        }
-//                    }
-//                    ledValue_Array[x][y][z](1,1,0,0);
-//                    copyLayer(Z_LAYER,BOTTOM,TOP);
-//                    for(uint8_t y = 0; y < 3; y++)
-//                    {
-//                        for(uint8_t x = 0; x < 3; x++)
-//                        {
-//                            ledValue_Array[x][y][z](x,y,1,1);
-//                            x++;
-//                        }
-//                        y++;
-//                    }
-//                    waitForNextFrame(FRAMECOUNT_VALUE_MEDIUM);
-//                    break;
-//                }
-//                waitForNextFrame(FRAMECOUNT_VALUE_MEDIUM);
-//
-//                /* Wenn Hälfte der Animation abgearbeitet, dann Rückwärts ablaufen */
-//                if(i >= 2)
-//                {
-//                    k--;
-//                }
-//                else
-//                {
-//                    k++;
-//                }
-//            }
-//            clearLEDCube();
-//            waitForNextFrame(FRAMECOUNT_VALUE_MEDIUM);
-//            k = 0;
-//        }
-//
-//    return animationState;
-//}
+uint8_t cubeFraming(uint8_t replay)
+{
+    enum ledCorners {
+        LEFT_FRONT_CORNER   = 0,
+        RIGHT_FRONT_CORNER  = 3,
+        LEFT_BACK_CORNER    = 12,
+        RIGHT_BACK_CORNER   = 15
+    };
+
+    static enum ledCorners led_start = LEFT_FRONT_CORNER;
+
+    if(animationState == 0) {
+        counter = replay;
+        clearLEDCube();
+        animationState = 1;
+        localHSV.h = globalHSV.h;
+        localHSV.s = globalHSV.s;
+        localHSV.v = globalHSV.v;
+    }
+
+    switch(animationState) {
+    case 1:
+        /* Erste LED in einer Ecke aktivieren */
+        setLedColor((nextFrame+led_start+0*16), &localHSV);
+        animationState = 2;
+        break;
+    case 2:
+        clearLEDCube();
+        /* Würfel mit 8 LEDs aktivieren */
+        if(led_start == LEFT_FRONT_CORNER) {
+            for(uint8_t z = 0; z < 2; z++) {
+                setLedColor((nextFrame+led_start+z*16), &localHSV);
+                setLedColor((nextFrame+led_start+1+z*16), &localHSV);
+                setLedColor((nextFrame+led_start+4+z*16), &localHSV);
+                setLedColor((nextFrame+led_start+1+4+z*16), &localHSV);
+            }
+        }
+        else if(led_start == RIGHT_FRONT_CORNER) {
+            for(uint8_t z = 0; z < 2; z++) {
+                setLedColor((nextFrame+led_start+z*16), &localHSV);
+                setLedColor((nextFrame+led_start-1+z*16), &localHSV);
+                setLedColor((nextFrame+led_start+4+z*16), &localHSV);
+                setLedColor((nextFrame+led_start-1+4+z*16), &localHSV);
+            }
+        }
+        else if(led_start == LEFT_BACK_CORNER) {
+            for(uint8_t z = 0; z < 2; z++) {
+                setLedColor((nextFrame+led_start+z*16), &localHSV);
+                setLedColor((nextFrame+led_start+1+z*16), &localHSV);
+                setLedColor((nextFrame+led_start-4+z*16), &localHSV);
+                setLedColor((nextFrame+led_start+1-4+z*16), &localHSV);
+            }
+        }
+        else {
+            for(uint8_t z = 0; z < 2; z++) {
+                setLedColor((nextFrame+led_start+z*16), &localHSV);
+                setLedColor((nextFrame+led_start-1+z*16), &localHSV);
+                setLedColor((nextFrame+led_start-4+z*16), &localHSV);
+                setLedColor((nextFrame+led_start-1-4+z*16), &localHSV);
+            }
+        }
+        animationState = 3;
+        break;
+    case 3:
+        clearLEDCube();
+
+        //Fill layer0 and layer 2 and clear middle led afterwards
+        // x-x-x
+        // x-o-x
+        // x-x-x
+        if(led_start == LEFT_FRONT_CORNER) {
+            for(uint8_t x = 0; x < 3; x++) {
+                for(uint8_t y = 0; y < 3; y++) {
+                    for(uint8_t z = 0; z < 3; z++) {
+                        setLedColor((nextFrame+x+y*4+z*16), &localHSV);
+                        z++;
+                    }
+                }
+            }
+            setLedColor((nextFrame+1+1*4+0*16), &color_table[HSV_COLOR_BLACK]);
+            setLedColor((nextFrame+1+1*4+2*16), &color_table[HSV_COLOR_BLACK]);
+        }
+        else if(led_start == RIGHT_FRONT_CORNER) {
+            for(uint8_t x = 3; x > 0; x--) {
+                for(uint8_t y = 0; y < 3; y++) {
+                    for(uint8_t z = 0; z < 3; z++) {
+                        setLedColor((nextFrame+x+y*4+z*16), &localHSV);
+                        z++;
+                    }
+                }
+            }
+            setLedColor((nextFrame+2+1*4+0*16), &color_table[HSV_COLOR_BLACK]);
+            setLedColor((nextFrame+2+1*4+2*16), &color_table[HSV_COLOR_BLACK]);
+        }
+        else if(led_start == LEFT_BACK_CORNER) {
+            for(uint8_t x = 0; x < 3; x++) {
+                for(uint8_t y = 3; y > 0; y--) {
+                    for(uint8_t z = 0; z < 3; z++) {
+                        setLedColor((nextFrame+x+y*4+z*16), &localHSV);
+                        z++;
+                    }
+                }
+            }
+            setLedColor((nextFrame+1+2*4+0*16), &color_table[HSV_COLOR_BLACK]);
+            setLedColor((nextFrame+1+2*4+2*16), &color_table[HSV_COLOR_BLACK]);
+        }
+        else {
+            for(uint8_t x = 3; x > 0; x--) {
+                for(uint8_t y = 3; y > 0; y--) {
+                    for(uint8_t z = 0; z < 3; z++) {
+                        setLedColor((nextFrame+x+y*4+z*16), &localHSV);
+                        z++;
+                    }
+                }
+            }
+            setLedColor((nextFrame+2+2*4+0*16), &color_table[HSV_COLOR_BLACK]);
+            setLedColor((nextFrame+2+2*4+2*16), &color_table[HSV_COLOR_BLACK]);
+        }
+
+        //Set pattern layer1
+        //  x-o-x
+        //  o-o-o
+        //  x-o-x
+        if(led_start == LEFT_FRONT_CORNER) {
+            for(uint8_t x = 0; x < 3; x++) {
+                for(uint8_t y = 0; y < 3; y++) {
+                    setLedColor((nextFrame+x+y*4+1*16), &localHSV);
+                    y++;    //Skip middle column
+                }
+                x++;    //Skip middle row
+            }
+        }
+        else if(led_start == RIGHT_FRONT_CORNER) {
+            for(uint8_t x = 3; x > 0; x--) {
+                for(uint8_t y = 0; y < 3; y++) {
+                    setLedColor((nextFrame+x+y*4+1*16), &localHSV);
+                    y++;    //Skip middle column
+                }
+                x--;    //Skip middle row
+            }
+        }
+        else if(led_start == LEFT_BACK_CORNER) {
+            for(uint8_t x = 0; x < 3; x++) {
+                for(uint8_t y = 3; y > 0; y--) {
+                    setLedColor((nextFrame+x+y*4+1*16), &localHSV);
+                    y--;    //Skip middle column
+                }
+                x++;    //Skip middle row
+            }
+        }
+        else {
+            for(uint8_t x = 3; x > 0; x--) {
+                for(uint8_t y = 3; y > 0; y--) {
+                    setLedColor((nextFrame+x+y*4+1*16), &localHSV);
+                    y--;    //Skip middle column
+                }
+                x--;    //Skip middle row
+            }
+        }
+
+        animationState = 4;
+        break;
+    case 4:
+        clearLEDCube();
+
+        //Fill layer0 and layer3 and clear middle led afterwards
+        // x-x-x-x
+        // x-o-o-x
+        // x-o-o-x
+        // x-x-x-x
+        for(uint8_t y = 0; y < 4; y++) {
+            for(uint8_t x = 0; x < 4; x++) {
+                for(uint8_t z = 0; z < 4; z++) {
+                    setLedColor((nextFrame+x+y*4+z*16), &localHSV);
+                    z += 2;    // Skip layer1 and layer2
+                }
+            }
+        }
+        setLedColor((nextFrame+1+1*4+0*16), &color_table[HSV_COLOR_BLACK]);
+        setLedColor((nextFrame+2+1*4+2*16), &color_table[HSV_COLOR_BLACK]);
+        setLedColor((nextFrame+1+2*4+0*16), &color_table[HSV_COLOR_BLACK]);
+        setLedColor((nextFrame+2+2*4+2*16), &color_table[HSV_COLOR_BLACK]);
+
+        //Set pattern layer1 and layer2
+        //  x-o-o-x
+        //  o-o-o-o
+        //  o-o-o-o
+        //  x-o-o-x
+        for(uint8_t y = 0; y < 3; y++) {
+            for(uint8_t x = 0; x < 3; x++) {
+                setLedColor((nextFrame+x+y*4+1*16), &localHSV);
+                x += 2;    //Skip inner rows
+            }
+            y += 2;    //Skip inner columns
+        }
+
+        animationState = 5;
+        break;
+    case 5:
+        clearLEDCube();
+
+        //Fill layer0 and layer 2 and clear middle led afterwards
+        // x-x-x
+        // x-o-x
+        // x-x-x
+        if(led_start == LEFT_FRONT_CORNER) {
+            for(uint8_t x = 0; x < 3; x++) {
+                for(uint8_t y = 0; y < 3; y++) {
+                    for(uint8_t z = 0; z < 3; z++) {
+                        setLedColor((nextFrame+x+y*4+z*16), &localHSV);
+                        z++;
+                    }
+                }
+            }
+            setLedColor((nextFrame+1+1*4+0*16), &color_table[HSV_COLOR_BLACK]);
+            setLedColor((nextFrame+1+1*4+2*16), &color_table[HSV_COLOR_BLACK]);
+        }
+        else if(led_start == RIGHT_FRONT_CORNER) {
+            for(uint8_t x = 3; x > 0; x--) {
+                for(uint8_t y = 0; y < 3; y++) {
+                    for(uint8_t z = 0; z < 3; z++) {
+                        setLedColor((nextFrame+x+y*4+z*16), &localHSV);
+                        z++;
+                    }
+                }
+            }
+            setLedColor((nextFrame+2+1*4+0*16), &color_table[HSV_COLOR_BLACK]);
+            setLedColor((nextFrame+2+1*4+2*16), &color_table[HSV_COLOR_BLACK]);
+        }
+        else if(led_start == LEFT_BACK_CORNER) {
+            for(uint8_t x = 0; x < 3; x++) {
+                for(uint8_t y = 3; y > 0; y--) {
+                    for(uint8_t z = 0; z < 3; z++) {
+                        setLedColor((nextFrame+x+y*4+z*16), &localHSV);
+                        z++;
+                    }
+                }
+            }
+            setLedColor((nextFrame+1+2*4+0*16), &color_table[HSV_COLOR_BLACK]);
+            setLedColor((nextFrame+1+2*4+2*16), &color_table[HSV_COLOR_BLACK]);
+        }
+        else {
+            for(uint8_t x = 3; x > 0; x--) {
+                for(uint8_t y = 3; y > 0; y--) {
+                    for(uint8_t z = 0; z < 3; z++) {
+                        setLedColor((nextFrame+x+y*4+z*16), &localHSV);
+                        z++;
+                    }
+                }
+            }
+            setLedColor((nextFrame+2+2*4+0*16), &color_table[HSV_COLOR_BLACK]);
+            setLedColor((nextFrame+2+2*4+2*16), &color_table[HSV_COLOR_BLACK]);
+        }
+
+        //Set pattern layer1
+        //  x-o-x
+        //  o-o-o
+        //  x-o-x
+        if(led_start == LEFT_FRONT_CORNER) {
+            for(uint8_t x = 0; x < 3; x++) {
+                for(uint8_t y = 0; y < 3; y++) {
+                    setLedColor((nextFrame+x+y*4+1*16), &localHSV);
+                    y++;    //Skip middle column
+                }
+                x++;    //Skip middle row
+            }
+        }
+        else if(led_start == RIGHT_FRONT_CORNER) {
+            for(uint8_t x = 3; x > 0; x--) {
+                for(uint8_t y = 0; y < 3; y++) {
+                    setLedColor((nextFrame+x+y*4+1*16), &localHSV);
+                    y++;    //Skip middle column
+                }
+                x--;    //Skip middle row
+            }
+        }
+        else if(led_start == LEFT_BACK_CORNER) {
+            for(uint8_t x = 0; x < 3; x++) {
+                for(uint8_t y = 3; y > 0; y--) {
+                    setLedColor((nextFrame+x+y*4+1*16), &localHSV);
+                    y--;    //Skip middle column
+                }
+                x++;    //Skip middle row
+            }
+        }
+        else {
+            for(uint8_t x = 3; x > 0; x--) {
+                for(uint8_t y = 3; y > 0; y--) {
+                    setLedColor((nextFrame+x+y*4+1*16), &localHSV);
+                    y--;    //Skip middle column
+                }
+                x--;    //Skip middle row
+            }
+        }
+
+        animationState = 6;
+        break;
+    case 6:
+        clearLEDCube();
+        /* Würfel mit 8 LEDs aktivieren */
+        if(led_start == LEFT_FRONT_CORNER) {
+            for(uint8_t z = 0; z < 2; z++) {
+                setLedColor((nextFrame+led_start+z*16), &localHSV);
+                setLedColor((nextFrame+led_start+1+z*16), &localHSV);
+                setLedColor((nextFrame+led_start+4+z*16), &localHSV);
+                setLedColor((nextFrame+led_start+1+4+z*16), &localHSV);
+            }
+        }
+        else if(led_start == RIGHT_FRONT_CORNER) {
+            for(uint8_t z = 0; z < 2; z++) {
+                setLedColor((nextFrame+led_start+z*16), &localHSV);
+                setLedColor((nextFrame+led_start-1+z*16), &localHSV);
+                setLedColor((nextFrame+led_start+4+z*16), &localHSV);
+                setLedColor((nextFrame+led_start-1+4+z*16), &localHSV);
+            }
+        }
+        else if(led_start == LEFT_BACK_CORNER) {
+            for(uint8_t z = 0; z < 2; z++) {
+                setLedColor((nextFrame+led_start+z*16), &localHSV);
+                setLedColor((nextFrame+led_start+1+z*16), &localHSV);
+                setLedColor((nextFrame+led_start-4+z*16), &localHSV);
+                setLedColor((nextFrame+led_start+1-4+z*16), &localHSV);
+            }
+        }
+        else {
+            for(uint8_t z = 0; z < 2; z++) {
+                setLedColor((nextFrame+led_start+z*16), &localHSV);
+                setLedColor((nextFrame+led_start-1+z*16), &localHSV);
+                setLedColor((nextFrame+led_start-4+z*16), &localHSV);
+                setLedColor((nextFrame+led_start-1-4+z*16), &localHSV);
+            }
+        }
+        animationState = 7;
+        break;
+    case 7:
+        /* Erste LED in einer Ecke aktivieren */
+        setLedColor((nextFrame+led_start+0*16), &localHSV);
+        animationState = 8;
+        break;
+    case 8:
+        clearLEDCube();
+        if(counter > 0) {
+            uint8_t randomNumber = rand()%4;
+            switch(randomNumber) {
+            case 0:
+                led_start = LEFT_FRONT_CORNER;
+                break;
+            case 1:
+                led_start = RIGHT_FRONT_CORNER;
+                break;
+            case 2:
+                led_start = LEFT_BACK_CORNER;
+                break;
+            case 3:
+                led_start = RIGHT_BACK_CORNER;
+            }
+            animationState = 1;
+        }
+        else {
+            animationState = 0;
+        }
+
+        break;
+    }
+
+    //Adjust color if user changed it
+    if((globalHSV.h != localHSV.h) || (globalHSV.s != localHSV.s) || (globalHSV.v != localHSV.v)) {
+        localHSV.h = globalHSV.h;
+        localHSV.s = globalHSV.s;
+        localHSV.v = globalHSV.v;
+
+        for(uint8_t i = 0; i < LED_NUMBER_MAX; i++) {
+            if(getLedColor(nextFrame + i) != RGB_COLOR_BLACK) {
+                setLedColor((nextFrame + i), &localHSV);
+            }
+        }
+    }
+
+    waitForNextFrame(FRAMECOUNT_VALUE_FAST);
+    return animationState;
+}
 
 void updateLayer(void)
 {

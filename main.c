@@ -25,6 +25,8 @@
 #include "animations.h"
 
 #define BRIGHTNESS_STEP (255/15)
+#define NUMBER_OF_ANIMATIONS 12
+
 
 static void playDemo(void);
 
@@ -75,11 +77,6 @@ int main()
         }
 
         if(keyCode != 0) {
-//            sprintf(debug_str, "%08lx", keyCode);
-//            USART_puts("0x");
-//            USART_puts(debug_str);
-//            USART_putc('\n');
-
             buttonID_t buttonID;
             buttonID = checkRemoteControlKey(keyCode);
 
@@ -176,7 +173,7 @@ static void playDemo(void) {
 #ifdef DEBUG
 //            USART_puts("fillCubeDiagonal finished\n");
 #endif
-            demoState = rand()%11;
+            demoState = rand()%NUMBER_OF_ANIMATIONS;
 //            demoState = 1;
         }
         break;
@@ -185,13 +182,13 @@ static void playDemo(void) {
 #ifdef DEBUG
 //            USART_puts("rainfall finished\n");
 #endif
-            demoState = rand()%11;
+            demoState = rand()%NUMBER_OF_ANIMATIONS;
 //            demoState = 2;
         }
         break;
     case 2:
         if(activateRandomLED(65) == 0) {
-            demoState = rand()%11;
+            demoState = rand()%NUMBER_OF_ANIMATIONS;
 #ifdef DEBUG
 //            USART_puts("activateRandomLED finished\n");
 #endif
@@ -203,7 +200,7 @@ static void playDemo(void) {
 #ifdef DEBUG
 //            USART_puts("fillCube_randomly finished\n");
 #endif
-            demoState = rand()%11;
+            demoState = rand()%NUMBER_OF_ANIMATIONS;
 //            demoState = 4;
         }
         break;
@@ -212,7 +209,7 @@ static void playDemo(void) {
 #ifdef DEBUG
 //            USART_puts("clearCube_randomly finished\n");
 #endif
-            demoState = rand()%11;
+            demoState = rand()%NUMBER_OF_ANIMATIONS;
 //            demoState = 5;
         }
         break;
@@ -221,7 +218,7 @@ static void playDemo(void) {
 #ifdef DEBUG
 //            USART_puts("dropLedTopDown finished\n");
 #endif
-            demoState = rand()%11;
+            demoState = rand()%NUMBER_OF_ANIMATIONS;
 //            demoState = 6;
         }
         break;
@@ -230,7 +227,7 @@ static void playDemo(void) {
 #ifdef DEBUG
 //            USART_puts("fadeColorCube finished\n");
 #endif
-            demoState = rand()%11;
+            demoState = rand()%NUMBER_OF_ANIMATIONS;
 //            demoState = 7;
         }
         break;
@@ -239,7 +236,7 @@ static void playDemo(void) {
 #ifdef DEBUG
 //            USART_puts("floatingXLayer finished\n");
 #endif
-            demoState = rand()%11;
+            demoState = rand()%NUMBER_OF_ANIMATIONS;
 //            demoState = 8;
         }
         break;
@@ -248,7 +245,7 @@ static void playDemo(void) {
 #ifdef DEBUG
 //            USART_puts("floatingYLayer finished\n");
 #endif
-            demoState = rand()%11;
+            demoState = rand()%NUMBER_OF_ANIMATIONS;
 //            demoState = 9;
         }
         break;
@@ -257,7 +254,7 @@ static void playDemo(void) {
 #ifdef DEBUG
 //            USART_puts("floatingZLayer finished\n");
 #endif
-            demoState = rand()%11;
+            demoState = rand()%NUMBER_OF_ANIMATIONS;
 //            demoState = 10;
         }
         break;
@@ -266,8 +263,13 @@ static void playDemo(void) {
 #ifdef DEBUG
 //            USART_puts("randomLedColorCube finished\n");
 #endif
-            demoState = rand()%11;
+            demoState = rand()%NUMBER_OF_ANIMATIONS;
 //            demoState = 0;
+        }
+        break;
+    case 11:
+        if(cubeFraming(3) == 0) {
+            demoState = rand()%NUMBER_OF_ANIMATIONS;
         }
         break;
     }
