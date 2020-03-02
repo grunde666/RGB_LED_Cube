@@ -20,6 +20,7 @@
  *
  */
 
+#define FRAMECOUNT_VALUE_DEBUG         122   //entspricht 2 s bei 61 Hz
 #define FRAMECOUNT_VALUE_VERY_SLOW     30   //entspricht 500 ms bei 61 Hz
 #define FRAMECOUNT_VALUE_SLOW          23   //entspricht 375 ms bei 61 Hz
 #define FRAMECOUNT_VALUE_MEDIUM        15   //entspricht 250 ms bei 61 Hz
@@ -943,34 +944,37 @@ uint8_t dropLedTopDown(uint8_t replay)
 //    clearLEDCube();
 //}
 
+enum ledCorners {
+    LEFT_FRONT_CORNER   = 0,
+    RIGHT_FRONT_CORNER  = 3,
+    LEFT_BACK_CORNER    = 12,
+    RIGHT_BACK_CORNER   = 15
+};
+
+static volatile uint8_t led_start;
+
 uint8_t cubeFraming(uint8_t replay)
 {
-    enum ledCorners {
-        LEFT_FRONT_CORNER   = 0,
-        RIGHT_FRONT_CORNER  = 3,
-        LEFT_BACK_CORNER    = 12,
-        RIGHT_BACK_CORNER   = 15
-    };
-
-    static enum ledCorners led_start = LEFT_FRONT_CORNER;
-
     if(animationState == 0) {
         counter = replay;
-        clearLEDCube();
         animationState = 1;
         localHSV.h = globalHSV.h;
         localHSV.s = globalHSV.s;
         localHSV.v = globalHSV.v;
+        led_start = RIGHT_FRONT_CORNER;
     }
 
     switch(animationState) {
     case 1:
+        clearLEDCube();
+        led_start = RIGHT_FRONT_CORNER;
         /* Erste LED in einer Ecke aktivieren */
         setLedColor((nextFrame+led_start+0*16), &localHSV);
         animationState = 2;
         break;
     case 2:
         clearLEDCube();
+        led_start = RIGHT_FRONT_CORNER;
         /* Würfel mit 8 LEDs aktivieren */
         if(led_start == LEFT_FRONT_CORNER) {
             for(uint8_t z = 0; z < 2; z++) {
@@ -997,6 +1001,7 @@ uint8_t cubeFraming(uint8_t replay)
             }
         }
         else {
+            setLedColor((nextFrame+3+2*16), &localHSV);
             for(uint8_t z = 0; z < 2; z++) {
                 setLedColor((nextFrame+led_start+z*16), &localHSV);
                 setLedColor((nextFrame+led_start-1+z*16), &localHSV);
@@ -1007,6 +1012,7 @@ uint8_t cubeFraming(uint8_t replay)
         animationState = 3;
         break;
     case 3:
+        led_start = RIGHT_FRONT_CORNER;
         clearLEDCube();
 
         //Fill layer0 and layer 2 and clear middle led afterwards
@@ -1106,6 +1112,7 @@ uint8_t cubeFraming(uint8_t replay)
         animationState = 4;
         break;
     case 4:
+        led_start = RIGHT_FRONT_CORNER;
         clearLEDCube();
 
         //Fill layer0 and layer3 and clear middle led afterwards
@@ -1122,18 +1129,24 @@ uint8_t cubeFraming(uint8_t replay)
             }
         }
         setLedColor((nextFrame+1+1*4+0*16), &color_table[HSV_COLOR_BLACK]);
-        setLedColor((nextFrame+2+1*4+2*16), &color_table[HSV_COLOR_BLACK]);
+        setLedColor((nextFrame+2+1*4+0*16), &color_table[HSV_COLOR_BLACK]);
         setLedColor((nextFrame+1+2*4+0*16), &color_table[HSV_COLOR_BLACK]);
-        setLedColor((nextFrame+2+2*4+2*16), &color_table[HSV_COLOR_BLACK]);
+        setLedColor((nextFrame+2+2*4+0*16), &color_table[HSV_COLOR_BLACK]);
+        setLedColor((nextFrame+1+1*4+3*16), &color_table[HSV_COLOR_BLACK]);
+        setLedColor((nextFrame+2+1*4+3*16), &color_table[HSV_COLOR_BLACK]);
+        setLedColor((nextFrame+1+2*4+3*16), &color_table[HSV_COLOR_BLACK]);
+        setLedColor((nextFrame+2+2*4+3*16), &color_table[HSV_COLOR_BLACK]);
 
         //Set pattern layer1 and layer2
         //  x-o-o-x
         //  o-o-o-o
         //  o-o-o-o
         //  x-o-o-x
-        for(uint8_t y = 0; y < 3; y++) {
-            for(uint8_t x = 0; x < 3; x++) {
-                setLedColor((nextFrame+x+y*4+1*16), &localHSV);
+        for(uint8_t y = 0; y < 4; y++) {
+            for(uint8_t x = 0; x < 4; x++) {
+                for(uint8_t z = 1; z < 3; z++) {
+                    setLedColor((nextFrame+x+y*4+z*16), &localHSV);
+                }
                 x += 2;    //Skip inner rows
             }
             y += 2;    //Skip inner columns
@@ -1142,6 +1155,7 @@ uint8_t cubeFraming(uint8_t replay)
         animationState = 5;
         break;
     case 5:
+        led_start = RIGHT_FRONT_CORNER;
         clearLEDCube();
 
         //Fill layer0 and layer 2 and clear middle led afterwards
@@ -1241,6 +1255,7 @@ uint8_t cubeFraming(uint8_t replay)
         animationState = 6;
         break;
     case 6:
+        led_start = RIGHT_FRONT_CORNER;
         clearLEDCube();
         /* Würfel mit 8 LEDs aktivieren */
         if(led_start == LEFT_FRONT_CORNER) {
@@ -1278,33 +1293,38 @@ uint8_t cubeFraming(uint8_t replay)
         animationState = 7;
         break;
     case 7:
+        led_start = RIGHT_FRONT_CORNER;
+        clearLEDCube();
         /* Erste LED in einer Ecke aktivieren */
         setLedColor((nextFrame+led_start+0*16), &localHSV);
         animationState = 8;
         break;
     case 8:
+        led_start = RIGHT_FRONT_CORNER;
         clearLEDCube();
         if(counter > 0) {
-            uint8_t randomNumber = rand()%4;
-            switch(randomNumber) {
-            case 0:
-                led_start = LEFT_FRONT_CORNER;
-                break;
-            case 1:
-                led_start = RIGHT_FRONT_CORNER;
-                break;
-            case 2:
-                led_start = LEFT_BACK_CORNER;
-                break;
-            case 3:
-                led_start = RIGHT_BACK_CORNER;
-            }
+            led_start = RIGHT_FRONT_CORNER;
+//            static uint8_t randomNumber = 0;
+//            randomNumber++;
+//            switch(randomNumber) {
+//            case 0:
+//                led_start = LEFT_FRONT_CORNER;
+//                break;
+//            case 1:
+//                led_start = RIGHT_FRONT_CORNER;
+//                break;
+//            case 2:
+//                led_start = LEFT_BACK_CORNER;
+//                break;
+//            case 3:
+//                led_start = RIGHT_BACK_CORNER;
+//            }
             animationState = 1;
+            counter--;
         }
         else {
             animationState = 0;
         }
-
         break;
     }
 
@@ -1321,7 +1341,7 @@ uint8_t cubeFraming(uint8_t replay)
         }
     }
 
-    waitForNextFrame(FRAMECOUNT_VALUE_FAST);
+    waitForNextFrame(FRAMECOUNT_VALUE_DEBUG);
     return animationState;
 }
 

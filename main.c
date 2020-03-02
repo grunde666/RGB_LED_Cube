@@ -63,7 +63,8 @@ int main()
         if(frameReady == 0) {
             switch(actualProgram) {
             case MAIN_STATE_PLAY_DEMO:
-                playDemo();
+                cubeFraming(1);
+//                playDemo();
                 break;
             case MAIN_STATE_MONOCHROME_CUBE:
                 fillLEDCube(&globalHSV);
